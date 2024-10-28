@@ -1,0 +1,23 @@
+{
+  "name": "mhynotrelease",
+  "version": "1.0.0",
+  "description": "把因为某个冈易高管的言行导致的米哈游首发音乐找回来",
+  "main": "index.js",
+  "repository": "https://github.com/etherfun/MHYNotRelease",
+  "author": "etherfun <what-funny-fun@outlook.com>",
+  "license": "GPL-3.0",
+  "private": true,
+  "dependencies": {
+    "crypto-js": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.29",
+    "@types/react-dom": "^18.0.11",
+    "esbuild": "^0.17.13"
+  },
+  "scripts": {
+    "build:dev": "esbuild ./src/main.tsx ./src/startup_script.ts --bundle --outdir=dist --sourcemap=inline --watch --target=chrome91",
+    "build": "esbuild ./src/main.tsx ./src/startup_script.ts --bundle --minify --outdir=dist --target=chrome91",
+    "analyze": "esbuild --bundle ./src/main.tsx --outdir=dist --minify --analyze=verbose"
+  }
+}
