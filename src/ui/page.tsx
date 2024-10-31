@@ -154,9 +154,9 @@ const NoNotrelease = () =>{
                   verticalAlign: "middle",
                   paddingLeft: "20px",
                   paddingBottom: "20px",
-                  color: "#fff"
+                  color: "var(--md-accent-color-secondary)"
               }}
-              >已全部上架 可喜可贺</span>
+              >已全部上架</span>
           </div>
           <br />
           <br />

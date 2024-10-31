@@ -100,25 +100,25 @@ export function Config() {
             <br />
             <h1>为什么单独写一个播放器? 因为找不到网易云播放接口 凑合用吧</h1>
             <h1>至于兼容性 我自己用的插件已经基本适配完了</h1>
-            <h4>张栋还我首发音乐!!!</h4>
+            <h1>张栋还我首发音乐!!!</h1>
             <br />
             <br />
             <br />
-            <span
+            <h1
                 style={{
                     cursor: 'pointer'
                 }}
                 onClick={() => betterncm.ncm.openUrl('https://github.com/etherfun/MHYNotRelease')}>
                 源代码
-            </span>
+            </h1>
             <br />
-            <span
+            <h1
                 style={{
                     cursor: 'pointer'
                 }}
                 onClick={() => betterncm.ncm.openUrl('https://github.com/etherfun/MHYNotRelease/issues')}>
                 问题反馈
-            </span>
+            </h1>
         </div>
     );
 }

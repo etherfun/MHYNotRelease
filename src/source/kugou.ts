@@ -4,7 +4,7 @@ export default class kugou_source {
     public  list = []
     async kugou_enter() {//入口 | 获取初始数据
         try {
-            /*var response = await fetch("https://www.kugou.com/yy/?r=singer/album&sid=O34QK0ECB21E3&t="+ Date.now(), {
+            var response = await fetch("https://www.kugou.com/yy/?r=singer/album&sid=O34QK0ECB21E3&t="+ Date.now(), {
                 method: 'GET',
                 headers: {
                     'User-Agent': 'Mozilla/5.0 (Linux; U; Android 11; zh-cn; Redmi K30 Pro Build/RKQ1.200826.002) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/79.0.3945.147 Mobile Safari/537.36 XiaoMi/MiuiBrowser/14.7.10'
@@ -14,29 +14,7 @@ export default class kugou_source {
                 throw new Error('网络错误! status: ${response.status}');
             }
             
-            var data = await response.json();9*/
-            var data = {
-                data: [
-                    {
-                        albumid: 106683147,
-                        albumname: "\u7edd\u533a\u96f62024Mix\u4e28\u6781\u9650\u59d4\u6258",
-                        img: "http:\/\/imge.kugou.com\/stdmusic\/240\/20241017\/20241017224213914467.jpg",
-                        publish_time: "2024-10-29",
-                        song_count: 1,
-                        singername: "\u4e09Z-STUDIO\u3001HOYO-MiX",
-                        encode_albumid: "1ril8rb0"
-                    },
-                    {
-                        albumid: 106700148,
-                        albumname: "\u5d29\u574f\u661f\u7a79\u94c1\u9053-\u4e0d\u4e71\u4e0d\u7834 No Dazzle, No Break",
-                        img: "http:\/\/imge.kugou.com\/stdmusic\/240\/20241016\/20241016111606971661.jpg",
-                        publish_time: "2024-10-29",
-                        song_count: 1,
-                        singername: "HOYO-MiX\u3001Reol",
-                        encode_albumid: "1riyd076"
-                    }
-                ]
-            }
+            var data = await response.json();
             this.getalbum(data);
         } catch (error) {
             console.error('加载专辑失败, Error:', error);

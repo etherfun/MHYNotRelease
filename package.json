@@ -16,8 +16,8 @@
     "esbuild": "^0.17.13"
   },
   "scripts": {
-    "build:dev": "esbuild ./src/main.tsx ./src/startup_script.ts --bundle --outdir=dist --sourcemap=inline --watch --target=chrome91",
-    "build": "esbuild ./src/main.tsx ./src/startup_script.ts --bundle --minify --outdir=dist --target=chrome91",
+    "build:dev": "esbuild ./src/main.tsx  --bundle --outdir=dist --sourcemap=inline --watch --target=chrome91",
+    "build": "esbuild ./src/main.tsx  --bundle --minify --outdir=dist --target=chrome91",
     "analyze": "esbuild --bundle ./src/main.tsx --outdir=dist --minify --analyze=verbose"
   }
 }
