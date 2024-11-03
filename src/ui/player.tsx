@@ -16,43 +16,30 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
   const [fadeOut, setFadeOut] = React.useState<boolean>(false);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
-  React.useEffect(() => {
+  React.useEffect(() => {//上下一首
     const index = tracks.findIndex((track) => track.url === url);
     if (index !== -1) {
       setCurrentTrackIndex(index);
     }
   }, [url, tracks]);
+  const nextTrack = () => setCurrentTrackIndex((prevIndex) => (prevIndex + 1) % tracks.length);
+  const previousTrack = () => setCurrentTrackIndex((prevIndex) => prevIndex === 0 ? tracks.length - 1 : prevIndex - 1);
 
-  React.useEffect(() => {
+  React.useEffect(() => {//播放暂停
     if (audioRef.current) {
       isPlaying ? audioRef.current.play() : audioRef.current.pause();
     }
   }, [isPlaying]);
+  const playTrack = () => setIsPlaying(true);
+  const pauseTrack = () => setIsPlaying(false);
 
-  React.useEffect(() => {
-    const elements = document.querySelectorAll<HTMLElement>(".has.j-flag");
-    if (elements.length === 0) return;
-
-    const observer = new MutationObserver(() => {
-      const heights = Array.from(elements)
-        .map((el) => parseFloat(el.style.height))
-        .filter((height) => !isNaN(height));
-      if (heights.length === 0) return;
-
-      const minHeight = Math.min(...heights);
+  React.useEffect(() => {//获取音量
       if (audioRef.current) {
-        audioRef.current.volume = Math.max(0, Math.min(1, minHeight / 100));
+        audioRef.current.volume = JSON.parse(localStorage.getItem('NM_SETTING_PLAYER')).volume
       }
-    });
+    },[JSON.parse(localStorage.getItem('NM_SETTING_PLAYER')).volume]);
 
-    elements.forEach((el) => {
-      observer.observe(el, { attributes: true, attributeFilter: ["style"] });
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  React.useEffect(() => {
+  React.useEffect(() => {//注册SMCT
     const currentTrack = tracks[currentTrackIndex];
     if ('mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
@@ -69,7 +56,7 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
     }
   }, [currentTrackIndex, tracks]);
 
-  React.useEffect(() => {
+  React.useEffect(() => {//显示位置
     const audioPlayer = document.querySelector('#audio-player') as HTMLElement;
     if (!audioPlayer) return
       
@@ -111,25 +98,13 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
 
   }, [localStorage.getItem('MHYNotRelease-opacity'), localStorage.getItem('MHYNotRelease-bottom0rtop'), localStorage.getItem('MHYNotRelease-left0rright')]);
 
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
-  };
-
-  const playTrack = () => setIsPlaying(true);
-  const pauseTrack = () => setIsPlaying(false);
-  const nextTrack = () => setCurrentTrackIndex((prevIndex) => (prevIndex + 1) % tracks.length);
-  const previousTrack = () => setCurrentTrackIndex((prevIndex) => prevIndex === 0 ? tracks.length - 1 : prevIndex - 1);
-
-  const handleTimeUpdate = () => {
+  const handleTimeUpdate = () => {//播放时间
     if (audioRef.current) {
       const current = audioRef.current.currentTime;
       setProgress((current / tracks[currentTrackIndex].time) * 100);
       setCurrentTime(formatTime(current));
     }
   };
-
   const handleSeek = (event) => {
     if (audioRef.current) {
       const rect = event.target.getBoundingClientRect();
@@ -138,25 +113,27 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
       setProgress((seekTime / tracks[currentTrackIndex].time) * 100);
     }
   };
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
+  };
+  const currentTrack = tracks[currentTrackIndex];
+  const totalTime = formatTime(currentTrack.time);
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = () => {//关闭按钮及相关逻辑
     setShowCloseButton(true);
     setFadeOut(false);
   };
-
   const handleMouseLeave = () => {
       setFadeOut(true);
   };
-
   const handleClose = () => {
     pauseTrack();
     document.querySelector('#audio-player').remove()
   };
 
-  const currentTrack = tracks[currentTrackIndex];
-  const totalTime = formatTime(currentTrack.time);
-
-  const blurcss = () =>{
+  const blurcss = () =>{//获取css样式表(兼容相关插件
     if(localStorage.getItem("LyricBarBlurSettings")){
       var css = JSON.parse(localStorage.getItem("LyricBarBlurSettings")).blur
       return css
@@ -173,7 +150,6 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
       margin: '0 5px'
     }
   }
-
   const opacitycss = () =>{
     if(localStorage.getItem("LyricBarBlurSettings")){
       var css = JSON.parse(localStorage.getItem("LyricBarBlurSettings")).bgTrans
@@ -183,7 +159,6 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
     }
     
   }
-
   const bgcss = () =>{
     if(document.body.classList.contains('material-you-theme')){
       return 'var(--md-accent-color)'
