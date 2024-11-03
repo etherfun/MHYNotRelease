@@ -1,16 +1,14 @@
 import { Config } from "./ui/config";
-import {  Playlist }  from "./ui/page";
+import { PlayListPage, NoNotReleasePage, NetworkErrorPage, JSONFormatErrorPage}  from "./ui/page";
 import kugou_source from "./source/kugou"
 let kugou = new kugou_source()
 import { AudioPlayer } from './ui/player';
-import { NoNotrelease } from "./ui/page";
-
 
 plugin.onConfig(()=>{
     const element=document.createElement("div");
     setTimeout(() => {
     ReactDOM.render(<Config/>,element);
-    }, 4000);
+    }, 1000);
     return element;
 })
 
@@ -19,8 +17,12 @@ plugin.onLoad(async()=>{
         if(window.location.href != "orpheus://orpheus/pub/app.html#/m/artist/?id=12487174"){
             return;
         }
-
+        
         await betterncm.utils.waitForElement('.m-yrsh.g-wrap1.q-lrc .u-tab2 ul li');
+
+        (document.querySelector('.p-dtalb.q-lrc.g-wrap5') as HTMLElement).style.display = null;
+        (document.querySelector('.j-flag.style.u-stab') as HTMLElement).style.display = null;
+
         if(document.getElementById('wonhyle-tab')){
             document.getElementById('wonhyle-tab').remove();
         }
@@ -28,8 +30,10 @@ plugin.onLoad(async()=>{
             document.getElementById('mhy-page-root').remove();
         }
         
+        await betterncm.utils.delay(10)
+
         let womhyle = document.createElement('a');
-        womhyle.className = 'text_tab';
+        womhyle.className = 'j-flxg';
         womhyle.id = 'wheremymhymuisc';
         womhyle.innerText = '未上架歌曲';
         let womhylebtn = document.createElement('li');
@@ -45,7 +49,7 @@ plugin.onLoad(async()=>{
         const artistTabs = document.querySelector('.m-yrsh.g-wrap1.q-lrc .u-tab2 ul');
         artistTabs.addEventListener("click", event=>{
             const targetTabText = event.target as Element;
-            womhylebtn.querySelectorAll('.text_tab').forEach(tabText => {
+            artistTabs.querySelectorAll('.j-flxg').forEach(tabText => {
                 tabText.classList.remove('z-sel');
             });
             targetTabText.classList.add('z-sel');
@@ -53,26 +57,34 @@ plugin.onLoad(async()=>{
             if(targetTabText.matches('#wheremymhymuisc')){
                 root.style.display = null;
                 originalPage.style.display = 'none';
-                (document.querySelector('.j-flag.style.u-stab') as HTMLElement).style.display = 'none'
+                (document.querySelector('.j-flag.style.u-stab') as HTMLElement).style.display = 'none';
             }else{
                 root.style.display = 'none';
                 originalPage.style.display = null;
-                (document.querySelector('.j-flag.style.u-stab') as HTMLElement).style.display = null
+                (document.querySelector('.j-flag.style.u-stab') as HTMLElement).style.display = null;
             }
         });
 
-        if(kugou.list.length === 0){
-            kugou.kugou_enter()
+        if (kugou.list.length === 0) {
+            kugou.kugou_enter();
         }
-        await betterncm.utils.delay(3000)
-        if(kugou.list.length === 0){
-            return console.log("我米哈游首发音乐呢: 无法加载清单")
-        }else if(kugou.list.includes('已全部上架')){
-           return ReactDOM.render(<NoNotrelease />, root)
-        }
-        ReactDOM.render(<Playlist songList={kugou.list}/>, root);
+        await betterncm.utils.waitForFunction(() => {
+            if (kugou.list.includes('已全部上架')) {
+                ReactDOM.render(<NoNotReleasePage />, root);
+                return true
+            } else if (kugou.list.includes('NetworkError')) {
+                ReactDOM.render(<NetworkErrorPage ErrorCode={kugou.list[1].ErrorCode} />, root);
+                return true
+            } else if (kugou.list.includes('JSONFormatError')) {
+                ReactDOM.render(<JSONFormatErrorPage />, root);
+                return true;
+            } else if (kugou.list.length != 0 && !kugou.list.includes('Loading')) {
+                ReactDOM.render(<PlayListPage songList={kugou.list} />, root);
+                return true
+            }
+        }, 50);
+        if (kugou.list.includes('已全部上架') || kugou.list.includes('NetworkError') || kugou.list.includes('JSONFormatError')) return
 
-        await betterncm.utils.delay(100)
         document.querySelector('#mhy-page-root .pl-di.pl-di-1').addEventListener('click', function(event: MouseEvent) {  
             const target = event.target as HTMLElement;
             const url = target.getAttribute('data-url');
@@ -80,7 +92,7 @@ plugin.onLoad(async()=>{
             if(document.getElementById('audio-player')){
                 document.getElementById('audio-player').remove();
             }
-            const playertarget = document.getElementById('x-g-mn')
+            const playertarget = document.getElementById('x-g-mn');
             const playerContainer = document.createElement('div');
             playertarget.appendChild(playerContainer);
             root.style.display = null;
