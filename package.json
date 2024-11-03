@@ -1,7 +1,7 @@
 {
   "name": "mhynotrelease",
-  "version": "1.0.0",
-  "description": "把因为某个冈易高管的言行导致的米哈游首发音乐找回来",
+  "version": "1.1.0",
+  "description": "让网易云也能首发米哈游音乐",
   "main": "index.js",
   "repository": "https://github.com/etherfun/MHYNotRelease",
   "author": "etherfun <what-funny-fun@outlook.com>",

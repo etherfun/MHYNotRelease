@@ -1,7 +1,7 @@
 # MHY NotRelease
-把因为某个冈易高管的言行导致没有米哈游首发音乐找回来
+让网易云也能首发米哈游音乐
 
-并在歌手页单独显示且提供播放功能
+在歌手页单独列出并提供播放功能
 
 ![img](dist/preview.png)
 ![img](previewimg/image1.png)
