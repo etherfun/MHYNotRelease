@@ -1,6 +1,6 @@
 {
   "name": "mhynotrelease",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "让网易云也能首发米哈游音乐",
   "main": "index.js",
   "repository": "https://github.com/etherfun/MHYNotRelease",
@@ -8,6 +8,7 @@
   "license": "GPL-3.0",
   "private": true,
   "dependencies": {
+    "browser-id3-writer": "^6.1.0",
     "crypto-js": "^4.2.0"
   },
   "devDependencies": {
