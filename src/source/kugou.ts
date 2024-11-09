@@ -95,6 +95,7 @@ export default class kugou_source {
                             album2list.album2list[i].song[l] = { info: {} };
                         }
 
+                        album2list.album2list[i].song[l].info.originhash = json_data.data.info[l].origin_hash;
                         album2list.album2list[i].song[l].info.hash = json_data.data.info[l].hash;
                         album2list.album2list[i].song[l].info.sqhash = json_data.data.info[l].sqhash;
                         album2list.album2list[i].song[l].info.hqhash = json_data.data.info[l]["320hash"];
@@ -112,7 +113,7 @@ export default class kugou_source {
                 }
             } catch (error) {
                 this.list.push('NetworkError');
-                this.list.push({ErrorCode:`${response.status}`});
+                this.list.push({ ErrorCode: `${response.status}` });
                 console.error('MHYNotRelease,提取专辑失败,', error);
                 return
             }
@@ -138,6 +139,7 @@ export default class kugou_source {
                     albumsong.albumlist[i].song[l].cover = data.album2list[i].song[l].info.cover
                     albumsong.albumlist[i].song[l].audio_id = data.album2list[i].song[l].info.audio_id
                     albumsong.albumlist[i].song[l].album_id = data.album2list[i].song[l].info.album_id
+                    albumsong.albumlist[i].song[l].originhash = data.album2list[i].song[l].info.originhash
                     albumsong.albumlist[i].song[l].url.origin = 'http://trackercdn.kugou.com/i/v2/?' +
                                                                 'key=' +
                                                                 CryptoJS.MD5(data.album2list[i].song[l].info.hash + 'kgcloudv2').toString(CryptoJS.enc.Hex) +
@@ -174,7 +176,23 @@ export default class kugou_source {
     
     choose_qu(data){//音质选择
         var quality
-        switch(JSON.parse(localStorage.getItem('MHYNotRelease-quantity'))){
+        if(localStorage.getItem('MHYNotRelease-playermode') == 'native'){
+            switch(JSON.parse(localStorage.getItem('MHYNotRelease-quantity'))){//原生播放
+                case 128:
+                    quality = 'origin'
+                    break
+                case 320:
+                    quality = 'hq'
+                    break
+                case 999:
+                    quality = 'hq'
+                    break
+                case 1999:
+                    quality = 'hq'
+                    break
+            }
+        }else{
+            switch(JSON.parse(localStorage.getItem('MHYNotRelease-quantity'))){//插件内置播放器
             case 128:
                 quality = 'origin'
                 break
@@ -187,7 +205,9 @@ export default class kugou_source {
             case 1999:
                 quality = 'sq'
                 break
+            }
         }
+        
         for (var i = 0; i < data.albumlist.length; i++) {
             for (var l = 0; l < data.albumlist[i].song.length; l++) {
                 var url;
@@ -211,7 +231,10 @@ export default class kugou_source {
             }
         }
         this.list2json(data)
+        console.log(data)
     }
+
+
 
     async list2json(data) {
         for (var i = 0; i < data.albumlist.length; i++) {
@@ -219,27 +242,47 @@ export default class kugou_source {
                 const parts = data.albumlist[i].song[l].name.split(' - ')
                 try {
                     var response = await fetch(data.albumlist[i].song[l].url);
+                    var data_get = await response.json()
                     if (!response.ok) {
                         throw new Error('网络错误! status:' + `${response.status}`);
                     }
 
                 } catch (error) {
                     this.list.push('NetworkError');
-                    this.list.push('{ErrorCode:' + `${response.status}` + '}');
+                    this.list.push({ ErrorCode: `${response.status}` });
                     console.error('MHYNotRelease,提取歌曲失败,', error);
                     return
                 }
 
+                try {//lyricr
+                    var response_key = await fetch(`https://krcs.kugou.com/search?ver=1&man=yes&client=mobi&keyword=&duration=&hash=${data.albumlist[i].song[l].originhash}`)
+                    var getlyric = await response_key.json()
+                    var response = await fetch(`http://lyrics.kugou.com/download?ver=1&client=pc&id=${getlyric.candidates[0].id}&accesskey=${getlyric.candidates[0].accesskey}&fmt=lrc&charset=utf8`)
+                    var lyricraw = await response.json()
+                    var lyric = decodeURIComponent(escape(atob(lyricraw.content)));
+                    if (!response_key.ok || !response.ok) {
+                        throw new Error('网络错误! status:' + `${response.status}`);
+                    }
+                } catch (error) {
+                    this.list.push('NetworkError');
+                    this.list.push({ ErrorCode: `${response.status}` });
+                    console.error('MHYNotRelease,提取歌词失败,', error);
+                    return
+                }
+
                 try {
-                    var data_get = await response.json()
                     var song = {
+                        lyric: lyric,
+                        originhash: data.albumlist[i].song[l].originhash,
+                        extName: data_get.extName,
                         url: data_get.url[0],
                         time: data_get.timeLength,
                         albumname: data.albumlist[i].song[l].albumname,
                         name: parts[1],
                         author: parts[0],
                         cover: ("orpheus://cache/?" + data.albumlist[i].song[l].cover).replace("{size}", '240'),
-                        publish_time: data.albumlist[i].song[l].publish_time
+                        publish_time: data.albumlist[i].song[l].publish_time,
+                        audio_id: data.albumlist[i].song[l].audio_id
                     };
                 } catch {
                     this.list.push('JSONFormatError');

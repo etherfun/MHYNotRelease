@@ -3,6 +3,7 @@ import { PlayListPage, NoNotReleasePage, NetworkErrorPage, JSONFormatErrorPage} 
 import kugou_source from "./source/kugou"
 let kugou = new kugou_source()
 import { AudioPlayer } from './ui/player';
+import { CacheAudio } from './source/cache'
 
 plugin.onConfig(()=>{
     const element=document.createElement("div");
@@ -14,7 +15,9 @@ plugin.onConfig(()=>{
 
 plugin.onLoad(async()=>{
     window.addEventListener("hashchange", async () => {
-        if(window.location.href != "orpheus://orpheus/pub/app.html#/m/artist/?id=12487174"){
+        if(!window.location.href.endsWith('12487174')){
+            if(document.getElementById('wonhyle-tab')) document.getElementById('wonhyle-tab').remove();
+            if(document.getElementById('mhy-page-root')) document.getElementById('mhy-page-root').remove();
             return;
         }
         
@@ -22,15 +25,10 @@ plugin.onLoad(async()=>{
 
         (document.querySelector('.p-dtalb.q-lrc.g-wrap5') as HTMLElement).style.display = null;
         (document.querySelector('.j-flag.style.u-stab') as HTMLElement).style.display = null;
-
-        if(document.getElementById('wonhyle-tab')){
-            document.getElementById('wonhyle-tab').remove();
-        }
-        if(document.getElementById('mhy-page-root')){
-            document.getElementById('mhy-page-root').remove();
-        }
+        if(document.getElementById('wonhyle-tab')) document.getElementById('wonhyle-tab').remove();
+        if(document.getElementById('mhy-page-root')) document.getElementById('mhy-page-root').remove();
         
-        await betterncm.utils.delay(10)
+        await betterncm.utils.delay(100)
 
         let womhyle = document.createElement('a');
         womhyle.className = 'j-flxg';
@@ -65,7 +63,7 @@ plugin.onLoad(async()=>{
             }
         });
 
-        if (kugou.list.length === 0) {
+        if (kugou.list.length === 0 || kugou.list.includes('已全部上架') || kugou.list.includes('NetworkError') || kugou.list.includes('JSONFormatError')) {
             kugou.kugou_enter();
         }
         await betterncm.utils.waitForFunction(() => {
@@ -85,18 +83,33 @@ plugin.onLoad(async()=>{
         }, 50);
         if (kugou.list.includes('已全部上架') || kugou.list.includes('NetworkError') || kugou.list.includes('JSONFormatError')) return
 
-        document.querySelector('#mhy-page-root .pl-di.pl-di-1').addEventListener('click', function(event: MouseEvent) {  
+        document.querySelector('#mhy-page-root .pl-di.pl-di-1').addEventListener('click', async function(event: MouseEvent) {  
             const target = event.target as HTMLElement;
             const url = target.getAttribute('data-url');
-            console.log(url)
-            if(document.getElementById('audio-player')){
-                document.getElementById('audio-player').remove();
+            const id = target.getAttribute('data-id');
+            const extName = target.getAttribute('data-extName');
+            console.log('MHYNotRelease,当前播放URL&id:'+ url +';'+id);
+            if(localStorage.getItem('MHYNotRelease-playermode') == 'native'){      
+                var folder = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache'
+                if(!await betterncm.fs.exists(folder)) await betterncm.fs.mkdir(folder)
+                await CacheAudio(kugou.list);
+
+                const Path = await betterncm.app.getNCMPath() + '\\cloudmusic.exe'
+                const CachePath = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache\\'
+                console.log(`"${Path}" --play="${CachePath}${id}${extName}"`);
+
+                betterncm.app.exec(`"${Path}" --play="${CachePath}${id}.${extName}"`);//使用cmd播放音乐
+            }else{
+                if (document.getElementById('audio-player')) {
+                    document.getElementById('audio-player').remove();
+                }
+                const playertarget = document.getElementById('x-g-mn');
+                const playerContainer = document.createElement('div');
+                playertarget.appendChild(playerContainer);
+                root.style.display = null;
+                ReactDOM.render(<AudioPlayer url={url} tracks={kugou.list} />, playerContainer);
             }
-            const playertarget = document.getElementById('x-g-mn');
-            const playerContainer = document.createElement('div');
-            playertarget.appendChild(playerContainer);
-            root.style.display = null;
-            ReactDOM.render(<AudioPlayer url={url} tracks={kugou.list} />, playerContainer);
+            
         })
     })
 })

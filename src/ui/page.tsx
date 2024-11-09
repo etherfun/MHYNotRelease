@@ -98,32 +98,71 @@ export const PlayListPage = ({ songList }) => {
                             <ul style={{ counterReset: "tlistorder 0" }}>
                                 {songList.map((song) => (
                                     <li
-                                        key={song.url}
                                         className="itm j-item j-impress"
                                         data-url={song.url}
+                                        data-id={song.audio_id}
+                                        data-extName={song.extName}
                                     >
                                         <span
                                             className="td col s-fc4"
                                             data-url={song.url}
+                                            data-id={song.audio_id}
+                                            data-extName={song.extName}
                                         >
                                             {formatTimeInSeconds(song.time)}
                                         </span>
                                         <div className="flow">
-                                            <div className="td col title" data-url={song.url}>
-                                                <img src={song.cover} className="cover" data-url={song.url} alt="cover" />
-                                                <span className="tit s-fc1" title={song.name} data-url={song.url}>
+                                            <div
+                                                className="td col title"
+                                                data-url={song.url}
+                                                data-id={song.audio_id}
+                                                data-extName={song.extName}
+                                            >
+                                                <img
+                                                    src={song.cover}
+                                                    className="cover"
+                                                    data-url={song.url}
+                                                    data-id={song.audio_id}
+                                                    data-extName={song.extName}
+                                                    alt="cover" />
+                                                <span
+                                                    className="tit s-fc1"
+                                                    title={song.name}
+                                                    data-url={song.url}
+                                                    data-id={song.audio_id}
+                                                    data-extName={song.extName}
+                                                    >
                                                     {song.name}
                                                 </span>
                                             </div>
-                                            <div className="td col ellipsis s-fc3 f-pr" title={song.author} data-url={song.url} style={{color: 'rgba(var(--md-accent-color-secondary-rgb), 0.5)'}}>
+                                            <div
+                                                className="td col ellipsis s-fc3 f-pr"
+                                                title={song.author}
+                                                data-url={song.url}
+                                                data-id={song.audio_id}
+                                                data-extName={song.extName}
+                                                style={{ color: 'rgba(var(--md-accent-color-secondary-rgb), 0.5)' }}>
                                                 {song.author}
                                             </div>
-                                            <div className="td col ellipsis" data-url={song.url}>
-                                                <a className="s-fc3" title={song.albumname} data-url={song.url} style={{cursor: 'default'}}>
+                                            <div
+                                                className="td col ellipsis"
+                                                data-url={song.url}>
+                                                <a
+                                                    className="s-fc3"
+                                                    title={song.albumname}
+                                                    data-url={song.url}
+                                                    data-id={song.audio_id}
+                                                    data-extName={song.extName}
+                                                    style={{ cursor: 'default' }}>
                                                     {song.albumname}
                                                 </a>
                                             </div>
-                                            <div className="td col s-fc4" data-url={song.url}>
+                                            <div
+                                                className="td col s-fc4"
+                                                data-url={song.url}
+                                                data-id={song.audio_id}
+                                                data-extName={song.extName}
+                                            >
                                                 <CountdownTimer initialPublishTime={song.publish_time} />
                                             </div>
                                         </div>
@@ -142,28 +181,7 @@ export const PlayListPage = ({ songList }) => {
     );
 }
 
-export const NoNotReleasePage = () =>{
-  return(
-      <div className="m-plylist m-plylist-pl2 m-plylist_playlist m-plylist-sort">
-          <span style={{
-              marginRight: "10px",
-              marginTop: "10px",
-              marginBottom: "10px",
-              display: "inline-block",
-              verticalAlign: "middle",
-              paddingLeft: "20px",
-              paddingBottom: "20px",
-              color: "var(--md-accent-color-secondary)"
-          }}
-          >已全部上架(应该)</span>
-          <br />
-          <br />
-          <br />
-      </div>
-  )
-}
-
-export const NetworkErrorPage = ({ErrorCode}) =>{
+export const NoNotReleasePage = () => {
     return (
         <div className="m-plylist m-plylist-pl2 m-plylist_playlist m-plylist-sort">
             <span style={{
@@ -176,7 +194,7 @@ export const NetworkErrorPage = ({ErrorCode}) =>{
                 paddingBottom: "20px",
                 color: "var(--md-accent-color-secondary)"
             }}
-            >网络错误,如果您网络正常,则可能服务器错误或API访问拒绝<br/>错误代码:{ErrorCode}</span>
+            >已全部上架(应该)</span>
             <br />
             <br />
             <br />
@@ -184,7 +202,28 @@ export const NetworkErrorPage = ({ErrorCode}) =>{
     )
 }
 
-export const JSONFormatErrorPage = () =>{
+export const NetworkErrorPage = ({ ErrorCode }) => {
+    return (
+        <div className="m-plylist m-plylist-pl2 m-plylist_playlist m-plylist-sort">
+            <span style={{
+                marginRight: "10px",
+                marginTop: "10px",
+                marginBottom: "10px",
+                display: "inline-block",
+                verticalAlign: "middle",
+                paddingLeft: "20px",
+                paddingBottom: "20px",
+                color: "var(--md-accent-color-secondary)"
+            }}
+            >网络错误,如果您网络正常,则可能服务器错误或API访问拒绝<br />错误代码:{ErrorCode}</span>
+            <br />
+            <br />
+            <br />
+        </div>
+    )
+}
+
+export const JSONFormatErrorPage = () => {
     return (
         <div className="m-plylist m-plylist-pl2 m-plylist_playlist m-plylist-sort">
             <span style={{
