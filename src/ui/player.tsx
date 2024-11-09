@@ -41,19 +41,17 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
 
   React.useEffect(() => {//注册SMCT
     const currentTrack = tracks[currentTrackIndex];
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: currentTrack.name,
-        artist: currentTrack.author,
-        album: currentTrack.albumname,
-        artwork: [{ src: currentTrack.cover.replace('orpheus://cache/?','').replace('/240',''), type: "image/jpeg" }]
-      });
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: currentTrack.name,
+      artist: currentTrack.author,
+      album: currentTrack.albumname,
+      artwork: [{ src: currentTrack.cover.replace('orpheus://cache/?', '').replace('/240', ''), type: "image/jpeg" }]
+    });
 
       navigator.mediaSession.setActionHandler("play", () => setIsPlaying(true));
       navigator.mediaSession.setActionHandler("pause", () => setIsPlaying(false));
       navigator.mediaSession.setActionHandler("nexttrack", () => setCurrentTrackIndex((prev) => (prev + 1) % tracks.length));
       navigator.mediaSession.setActionHandler("previoustrack", () => setCurrentTrackIndex((prev) => (prev - 1 + tracks.length) % tracks.length));
-    }
   }, [currentTrackIndex, tracks]);
 
   React.useEffect(() => {//显示位置
@@ -130,7 +128,12 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
   };
   const handleClose = () => {
     pauseTrack();
-    document.querySelector('#audio-player').remove()
+    navigator.mediaSession.metadata = null;
+    navigator.mediaSession.setActionHandler("play", null);
+    navigator.mediaSession.setActionHandler("pause", null);
+    navigator.mediaSession.setActionHandler("nexttrack", null);
+    navigator.mediaSession.setActionHandler("previoustrack", null);
+    document.querySelector('#audio-player').remove();
   };
 
   const blurcss = () =>{//获取css样式表(兼容相关插件
