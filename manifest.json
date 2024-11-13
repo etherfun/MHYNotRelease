@@ -1,17 +1,17 @@
 {
     "manifest_version": 1,
-    "name": "MHY NotRelease", 
-    "slug": "MHYNotRelease", 
+    "name": "MHY NotRelease",
+    "slug": "MHYNotRelease",
     "type": "extension",
-    "version": "1.2.0",
-    "author": "etherfun", 
+    "version": "1.2.1",
+    "author": "etherfun",
     "author_links": ["https://github.com/etherfun"],
     "description": "让网易云也能首发米哈游音乐 在歌手页单独列出并提供播放功能 可利用云盘同步到手机播放",
     "betterncm_version": ">=1.0.0",
     "preview": "dist/preview.png",
     "ncm3-compatible": false,
     "injects": {
-        "Main": [ 
+        "Main": [
             {
                 "file": "dist/main.js"
             }
