@@ -96,7 +96,6 @@ plugin.onLoad(async()=>{
 
                 const Path = await betterncm.app.getNCMPath() + '\\cloudmusic.exe'
                 const CachePath = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache\\'
-                console.log(`"${Path}" --play="${CachePath}${id}${extName}"`);
 
                 betterncm.app.exec(`"${Path}" --play="${CachePath}${id}.${extName}"`);//使用cmd播放音乐
             }else{

@@ -124,14 +124,24 @@ export const PlayListPage = ({ songList }) => {
                                                     data-url={song.url}
                                                     data-id={song.audio_id}
                                                     data-extName={song.extName}
-                                                    alt="cover" />
+                                                    alt="cover"
+                                                    style={{
+                                                        position: 'absolute',
+                                                        width: 'var(--cover-size, 32px)',
+                                                        height: 'var(--cover-size, 32px)',
+                                                        borderRadius: '6px'
+                                                    }}
+                                                />
                                                 <span
                                                     className="tit s-fc1"
                                                     title={song.name}
                                                     data-url={song.url}
                                                     data-id={song.audio_id}
                                                     data-extName={song.extName}
-                                                    >
+                                                    style={{
+                                                        marginLeft: 'calc(var(--cover-size, 32px) + 10px)'
+                                                    }}
+                                                >
                                                     {song.name}
                                                 </span>
                                             </div>

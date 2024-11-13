@@ -231,7 +231,6 @@ export default class kugou_source {
             }
         }
         this.list2json(data)
-        console.log(data)
     }
 
 
