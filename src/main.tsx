@@ -1,33 +1,33 @@
 import { Config } from "./ui/config";
-import { PlayListPage, NoNotReleasePage, NetworkErrorPage, JSONFormatErrorPage}  from "./ui/page";
+import { PlayListPage, NoNotReleasePage, NetworkErrorPage, JSONFormatErrorPage } from "./ui/page";
 import kugou_source from "./source/kugou"
 let kugou = new kugou_source()
 import { AudioPlayer } from './ui/player';
 import { CacheAudio } from './source/cache'
 
-plugin.onConfig(()=>{
-    const element=document.createElement("div");
+plugin.onConfig(() => {
+    const element = document.createElement("div");
     setTimeout(() => {
-    ReactDOM.render(<Config/>,element);
+        ReactDOM.render(<Config />, element);
     }, 1000);
     return element;
 })
 
-plugin.onLoad(async()=>{
+plugin.onLoad(async () => {
     window.addEventListener("hashchange", async () => {
-        if(!window.location.href.endsWith('12487174')){
-            if(document.getElementById('wonhyle-tab')) document.getElementById('wonhyle-tab').remove();
-            if(document.getElementById('mhy-page-root')) document.getElementById('mhy-page-root').remove();
+        if (!window.location.href.endsWith('12487174')) {
+            if (document.getElementById('wonhyle-tab')) document.getElementById('wonhyle-tab').remove();
+            if (document.getElementById('mhy-page-root')) document.getElementById('mhy-page-root').remove();
             return;
         }
-        
+
         await betterncm.utils.waitForElement('.m-yrsh.g-wrap1.q-lrc .u-tab2 ul li');
 
         (document.querySelector('.p-dtalb.q-lrc.g-wrap5') as HTMLElement).style.display = null;
         (document.querySelector('.j-flag.style.u-stab') as HTMLElement).style.display = null;
-        if(document.getElementById('wonhyle-tab')) document.getElementById('wonhyle-tab').remove();
-        if(document.getElementById('mhy-page-root')) document.getElementById('mhy-page-root').remove();
-        
+        if (document.getElementById('wonhyle-tab')) document.getElementById('wonhyle-tab').remove();
+        if (document.getElementById('mhy-page-root')) document.getElementById('mhy-page-root').remove();
+
         await betterncm.utils.delay(100)
 
         let womhyle = document.createElement('a');
@@ -45,18 +45,18 @@ plugin.onLoad(async()=>{
         document.querySelector('.m-yrsh.g-wrap1.q-lrc').appendChild(root);
 
         const artistTabs = document.querySelector('.m-yrsh.g-wrap1.q-lrc .u-tab2 ul');
-        artistTabs.addEventListener("click", event=>{
+        artistTabs.addEventListener("click", event => {
             const targetTabText = event.target as Element;
             artistTabs.querySelectorAll('.j-flxg').forEach(tabText => {
                 tabText.classList.remove('z-sel');
             });
             targetTabText.classList.add('z-sel');
             const originalPage = document.querySelector(".m-yrsh.g-wrap1.q-lrc div.q-lrc") as HTMLDivElement;
-            if(targetTabText.matches('#wheremymhymuisc')){
+            if (targetTabText.matches('#wheremymhymuisc')) {
                 root.style.display = null;
                 originalPage.style.display = 'none';
                 (document.querySelector('.j-flag.style.u-stab') as HTMLElement).style.display = 'none';
-            }else{
+            } else {
                 root.style.display = 'none';
                 originalPage.style.display = null;
                 (document.querySelector('.j-flag.style.u-stab') as HTMLElement).style.display = null;
@@ -83,22 +83,30 @@ plugin.onLoad(async()=>{
         }, 50);
         if (kugou.list.includes('已全部上架') || kugou.list.includes('NetworkError') || kugou.list.includes('JSONFormatError')) return
 
-        document.querySelector('#mhy-page-root .pl-di.pl-di-1').addEventListener('click', async function(event: MouseEvent) {  
+        document.querySelector('#mhy-page-root .pl-di.pl-di-1').addEventListener('dblclick', async function (event: MouseEvent) {
             const target = event.target as HTMLElement;
             const url = target.getAttribute('data-url');
             const id = target.getAttribute('data-id');
             const extName = target.getAttribute('data-extName');
-            console.log('MHYNotRelease,当前播放URL&id:'+ url +';'+id);
-            if(localStorage.getItem('MHYNotRelease-playermode') == 'native'){      
+            console.log('MHYNotRelease,当前播放URL&id:' + url, id);
+            if (localStorage.getItem('MHYNotRelease-playermode') == 'native') {
                 var folder = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache'
-                if(!await betterncm.fs.exists(folder)) await betterncm.fs.mkdir(folder)
-                await CacheAudio(kugou.list);
+                if (!await betterncm.fs.exists(folder)) await betterncm.fs.mkdir(folder)
+
+                let dataToCache = null;
+                for (const item of kugou.list) {
+                    if (item['audio_id'] == id) {
+                        dataToCache = { id: item.audio_id, ...item };
+                        break;
+                    }//提取点击目标的json
+                }
+                await CacheAudio(dataToCache);
 
                 const Path = await betterncm.app.getNCMPath() + '\\cloudmusic.exe'
                 const CachePath = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache\\'
 
                 betterncm.app.exec(`"${Path}" --play="${CachePath}${id}.${extName}"`);//使用cmd播放音乐
-            }else{
+            } else {
                 if (document.getElementById('audio-player')) {
                     document.getElementById('audio-player').remove();
                 }
@@ -108,7 +116,6 @@ plugin.onLoad(async()=>{
                 root.style.display = null;
                 ReactDOM.render(<AudioPlayer url={url} tracks={kugou.list} />, playerContainer);
             }
-            
         })
     })
 })
