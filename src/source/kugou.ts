@@ -233,9 +233,9 @@ export default class kugou_source {
         this.list2json(data)
     }
 
-
-
     async list2json(data) {
+        const dist = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath;
+        const fileList = await betterncm.fs.readDir(dist + '\\Cache\\MHYNotRelease_Cache');
         for (var i = 0; i < data.albumlist.length; i++) {
             for (var l = 0; l < data.albumlist[i].song.length; l++) {
                 const parts = data.albumlist[i].song[l].name.split(' - ')
@@ -254,13 +254,19 @@ export default class kugou_source {
                 }
 
                 try {//lyricr
-                    var response_key = await fetch(`https://krcs.kugou.com/search?ver=1&man=yes&client=mobi&keyword=&duration=&hash=${data.albumlist[i].song[l].originhash}`)
-                    var getlyric = await response_key.json()
-                    var response = await fetch(`http://lyrics.kugou.com/download?ver=1&client=pc&id=${getlyric.candidates[0].id}&accesskey=${getlyric.candidates[0].accesskey}&fmt=lrc&charset=utf8`)
-                    var lyricraw = await response.json()
-                    var lyric = decodeURIComponent(escape(atob(lyricraw.content)));
-                    if (!response_key.ok || !response.ok) {
-                        throw new Error('网络错误! status:' + `${response.status}`);
+                    const filePath_lrc = `${dist}\\Cache\\MHYNotRelease_Cache\\${data.albumlist[i].song[l].audio_id}.lrc`;
+
+                    if (fileList.includes(filePath_lrc)) {
+                        var lyric = ''
+                    } else {
+                        var response_key = await fetch(`https://krcs.kugou.com/search?ver=1&man=yes&client=mobi&keyword=&duration=&hash=${data.albumlist[i].song[l].originhash}`)
+                        var getlyric = await response_key.json()
+                        var response = await fetch(`http://lyrics.kugou.com/download?ver=1&client=pc&id=${getlyric.candidates[0].id}&accesskey=${getlyric.candidates[0].accesskey}&fmt=lrc&charset=utf8`)
+                        var lyricraw = await response.json()
+                        var lyric = decodeURIComponent(escape(atob(lyricraw.content)));
+                        if (!response_key.ok || !response.ok) {
+                            throw new Error('网络错误! status:' + `${response.status}`);
+                        }
                     }
                 } catch (error) {
                     this.list.push('NetworkError');

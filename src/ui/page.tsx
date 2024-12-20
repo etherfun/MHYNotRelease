@@ -1,3 +1,5 @@
+import { CacheAudio } from "../source/cache";
+
 export const PlayListPage = ({ songList }) => {
 
     interface PublishTime {
@@ -189,6 +191,50 @@ export const PlayListPage = ({ songList }) => {
         </div>
 
     );
+}
+
+export const PlayAll = ({ songList }) => {
+    const play = () => {
+        CacheAudio(songList)
+    }
+
+    return (
+        <div className="u-ibtn5b u-ibtn5b-new j-oper">
+            <span
+                className="u-ibtn5 u-ibtn5-new u-ibtn5-ply"
+                title={`替换播放列表播放\n第一次加载歌曲数量过多时加载音频文件可能会长达一分钟\n请耐心等待后再点击一次或多次`}
+
+                data-res-action="play"
+                data-res-type="28"
+                data-log-action="playall"
+                data-log-source="local"
+                data-action="play"
+                data-res-data="d:\music\cloudmusic\cache\mhynotrelease_cache"
+                data-res-from="-3"
+                onClick={play}
+            >
+                <svg>
+                    <use xlinkHref="orpheus://orpheus/style/res/svg/icon.sp.svg#btn_play_sml"></use>
+                </svg>播放全部
+            </span>
+            <span
+                className="u-ibtn5 u-ibtn5-new u-ibtn5-only u-ibtn5-addto"
+                title={`添加全部到播放列表\n第一次加载歌曲数量过多时加载音频文件可能会长达一分钟\n请耐心等待后再点击一次或多次`}
+
+                data-res-action="queue"
+                data-res-type="28"
+                data-log-action="addtoall"
+                data-log-source="local"
+                data-res-data="d:\music\cloudmusic\cache\mhynotrelease_cache"
+                data-res-from="-3"
+                onClick={play}
+            >
+                <svg>
+                    <use xlinkHref="orpheus://orpheus/style/res/svg/icon.sp.svg#btn_addto_list"></use>
+                </svg>
+            </span>
+        </div>
+    )
 }
 
 export const NoNotReleasePage = () => {

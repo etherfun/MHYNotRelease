@@ -1,9 +1,9 @@
 import { Config } from "./ui/config";
-import { PlayListPage, NoNotReleasePage, NetworkErrorPage, JSONFormatErrorPage } from "./ui/page";
+import { PlayListPage, NoNotReleasePage, NetworkErrorPage, JSONFormatErrorPage, PlayAll} from "./ui/page";
 import kugou_source from "./source/kugou"
 let kugou = new kugou_source()
 import { AudioPlayer } from './ui/player';
-import { CacheAudio } from './source/cache'
+import { CacheAudio, Placeholders } from './source/cache'
 
 plugin.onConfig(() => {
     const element = document.createElement("div");
@@ -15,9 +15,10 @@ plugin.onConfig(() => {
 
 plugin.onLoad(async () => {
     window.addEventListener("hashchange", async () => {
-        if (!window.location.href.endsWith('12487174')) {
+        if (!window.location.href.includes('12487174')) {
             if (document.getElementById('wonhyle-tab')) document.getElementById('wonhyle-tab').remove();
             if (document.getElementById('mhy-page-root')) document.getElementById('mhy-page-root').remove();
+            if (document.querySelector('.j-flag.style.u-stab.mhynotrelease')) document.querySelector('.j-flag.style.u-stab.mhynotrelease').remove();
             return;
         }
 
@@ -27,8 +28,17 @@ plugin.onLoad(async () => {
         (document.querySelector('.j-flag.style.u-stab') as HTMLElement).style.display = null;
         if (document.getElementById('wonhyle-tab')) document.getElementById('wonhyle-tab').remove();
         if (document.getElementById('mhy-page-root')) document.getElementById('mhy-page-root').remove();
+        if (document.querySelector('.j-flag.style.u-stab.mhynotrelease')) document.querySelector('.j-flag.style.u-stab.mhynotrelease').remove();
 
         await betterncm.utils.delay(100)
+
+        if (localStorage.getItem('MHYNotRelease-playermode') == 'native') {
+            const button = document.createElement('ul');
+            button.className = "j-flag style u-stab mhynotrelease"
+            button.style.display = 'none'
+            document.querySelector('.u-tab2.f-ff2.f-cb').appendChild(button)
+            ReactDOM.render(<PlayAll songList={kugou.list} />, button);
+        }
 
         let womhyle = document.createElement('a');
         womhyle.className = 'j-flxg';
@@ -56,10 +66,12 @@ plugin.onLoad(async () => {
                 root.style.display = null;
                 originalPage.style.display = 'none';
                 (document.querySelector('.j-flag.style.u-stab') as HTMLElement).style.display = 'none';
+                (document.querySelector('.j-flag.style.u-stab.mhynotrelease') as HTMLElement).style.display = null;
             } else {
                 root.style.display = 'none';
                 originalPage.style.display = null;
                 (document.querySelector('.j-flag.style.u-stab') as HTMLElement).style.display = null;
+                (document.querySelector('.j-flag.style.u-stab.mhynotrelease') as HTMLElement).style.display = 'none';
             }
         });
 
@@ -78,12 +90,13 @@ plugin.onLoad(async () => {
                 return true;
             } else if (kugou.list.length != 0 && !kugou.list.includes('Loading')) {
                 ReactDOM.render(<PlayListPage songList={kugou.list} />, root);
+                Placeholders(kugou.list);
                 return true
             }
         }, 50);
         if (kugou.list.includes('已全部上架') || kugou.list.includes('NetworkError') || kugou.list.includes('JSONFormatError')) return
 
-        document.querySelector('#mhy-page-root .pl-di.pl-di-1').addEventListener('dblclick', async function (event: MouseEvent) {
+        document.querySelector('#mhy-page-root .pl-di.pl-di-1').addEventListener('click', async function (event: MouseEvent) {
             const target = event.target as HTMLElement;
             const url = target.getAttribute('data-url');
             const id = target.getAttribute('data-id');
@@ -100,7 +113,7 @@ plugin.onLoad(async () => {
                         break;
                     }//提取点击目标的json
                 }
-                await CacheAudio(dataToCache);
+                await CacheAudio([dataToCache]);
 
                 const Path = await betterncm.app.getNCMPath() + '\\cloudmusic.exe'
                 const CachePath = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache\\'
@@ -116,6 +129,6 @@ plugin.onLoad(async () => {
                 root.style.display = null;
                 ReactDOM.render(<AudioPlayer url={url} tracks={kugou.list} />, playerContainer);
             }
-        })
-    })
+        });
+    });
 })

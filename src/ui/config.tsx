@@ -107,10 +107,6 @@ export function Config() {
                 </div>
             ))}
             <br />
-            <h1>1.2.0大更新 支持原生播放 歌词显示 多端同步未上架歌曲(需使用原生播放)</h1>
-            <br />
-            <h1>多端同步原理: 本地音乐播放后可在播放列表将歌曲添加至歌单,而网易云为了<br/>让歌单多端同步会自动同步本地音乐到 '我的音乐云盘' (默认打开,如果没有请<br/>手动打开)来让其他设备的歌单也能播放</h1>
-            <br />
             <h1>启用原生播放会产生缓存文件,缓存文件位置位于您的网易云音乐缓存目录(可<br/>在设置查看具体位置) 下 'MHYNotRelease_Cache' 文件夹内<br/>
                 <span style={{
                     cursor: 'pointer',
@@ -140,49 +136,6 @@ export function Config() {
                 onClick={() => betterncm.ncm.openUrl('https://github.com/etherfun/MHYNotRelease/issues')}>
                 问题反馈
             </h1>
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <span style={{color:'#ff0000'}}>•</span><span style={{color:'#ff7f00'}}>这</span><span style={{color:'#ffff00'}}>是</span><span style={{color:'#00ff00'}}>一</span><span style={{color:'#00ffff'}}>个</span><span style={{color:'#0000ff'}}>彩</span><span style={{color:'#8b00ff'}}>蛋</span>
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
             <br />
             <br />
             <br />
