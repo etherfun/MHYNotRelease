@@ -18,6 +18,15 @@ const settingOptions: SettingOption[] = [
         ],
     },
     {
+        key: 'cover',
+        label: '歌曲列表显示封面',
+        defaultValue: 'false',
+        options: [
+            { label: '隐藏', value: 'false' },
+            { label: '显示', value: 'true' },
+        ],
+    },
+    {
         key: 'bottom0rtop',
         label: '播放器垂直位置 (插件内置播放器)',
         defaultValue: 'bottom',
@@ -50,7 +59,7 @@ const settingOptions: SettingOption[] = [
         defaultValue: 'native',
         options: [
             { label: '插件内置播放器', value: 'plugin' },
-            { label: '原生播放(测试版本, 支持歌词, 原生控制 | 不支持AMLL类苹果歌词(它不读取本地歌词和封面), 无损音质[未来会支持])', value: 'native' },
+            { label: '原生播放器(测试版本, 支持歌词, 原生控制 | 不支持AMLL类苹果歌词插件, 无损音质)', value: 'native' },
         ],
     },
     //
@@ -107,16 +116,65 @@ export function Config() {
                 </div>
             ))}
             <br />
-            <h1>启用原生播放会产生缓存文件,缓存文件位置位于您的网易云音乐缓存目录(可<br/>在设置查看具体位置) 下 'MHYNotRelease_Cache' 文件夹内<br/>
+            <h1>启用原生播放会产生缓存文件,缓存文件位置位于您的网易云音乐缓存目录(可在设置查看具体位置) 下 'MHYNotRelease_Cache' 文件夹内
+                <br />
+                <span>您的存储位置为: {(JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache')}</span>
+                <br />
                 <span style={{
                     cursor: 'pointer',
                     color: '#ff4d40'
                 }}
                     onClick={async () => {
-                        await betterncm.fs.remove(JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache')
-                    }}>点我清除缓存</span></h1>
+                        if (await betterncm.fs.remove((JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache'))) {
+                            const createElement = (tag, className = '', text = '') => {
+                                const el = document.createElement(tag);
+                                if (className) el.className = className;
+                                if (text) el.textContent = text;
+                                return el;
+                            };
+                        
+                            const body = document.querySelector('body');
+                            
+                            const resultDiv = createElement('div', 'u-result j-tips');
+                            const wrapDiv = createElement('div', 'wrap');
+                            const innerDiv = createElement('div', 'inner j-flag');
+                            const span = createElement('span', 'u-tit f-ff2', '删除成功');
+                        
+                            innerDiv.appendChild(span);
+                            wrapDiv.appendChild(innerDiv);
+                            resultDiv.appendChild(wrapDiv);
+                            body.appendChild(resultDiv);
+                        } else {
+                            const createElement = (tag, className = '', text = '') => {
+                                const el = document.createElement(tag);
+                                if (className) el.className = className;
+                                if (text) el.textContent = text;
+                                return el;
+                            };
+                        
+                            const body = document.querySelector('body');
+                            
+                            const resultDiv = createElement('div', 'u-result j-tips');
+                            const wrapDiv = createElement('div', 'wrap');
+                            const innerDiv = createElement('div', 'inner j-flag');
+                            const span = createElement('span', 'u-tit f-ff2', '删除失败, 请手动删除');
+                        
+                            innerDiv.appendChild(span);
+                            wrapDiv.appendChild(innerDiv);
+                            resultDiv.appendChild(wrapDiv);
+                            body.appendChild(resultDiv);
+                        }
+                        
+                        setTimeout(() => {
+                            document.querySelector('.u-result.j-tips').remove();
+                        }, 2000);
+                    }}>点我清除缓存
+                </span>
+                <span>&lt;--此功能疑似BetterNCM removeAPI故障 点击后如果无法删除请手动删除
+                </span>
+            </h1>
             <br />
-            <h1>为什么单独写一个播放器? 因为找不到网易云播放接口(在1.2.0版本还是找不<br/>到但是用了一些奇怪的方法来实现原生播放) 凑合用吧</h1>
+            <h1>为什么单独写一个播放器? 因为找不到网易云播放接口(在现在还是找不到但是用了一些奇怪的方法来实现原生播放) 凑合用吧</h1>
             <br />
             <h1>至于兼容性 我自己用的插件已经基本适配完了</h1>
             <br />

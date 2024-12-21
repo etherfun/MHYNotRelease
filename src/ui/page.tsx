@@ -60,6 +60,32 @@ export const PlayListPage = ({ songList }) => {
         return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
     };
 
+    const css = (cover: boolean = false) => {
+        if (localStorage.getItem('MHYNotRelease-cover') == 'true') {
+            if (cover) {
+                return {
+                    position: 'absolute' as 'absolute',
+                    width: 'var(--cover-size, 32px)',
+                    height: 'var(--cover-size, 32px)',
+                    borderRadius: '6px'
+                }
+            } else {
+                return {
+                    marginLeft: 'calc(var(--cover-size, 32px) + 10px)'
+                }
+            }
+        } else {
+            if (cover) {
+                return {
+                    display: 'none'
+                }
+            } else {
+                return {
+                }
+            }
+        }
+    }
+
     return (
         <div className="m-plylist m-plylist-pl2 m-plylist_playlist m-plylist-sort" tabIndex={1000} id="all-songs-list">
             <div className="head sort f-cb j-flag">
@@ -127,12 +153,7 @@ export const PlayListPage = ({ songList }) => {
                                                     data-id={song.audio_id}
                                                     data-extName={song.extName}
                                                     alt="cover"
-                                                    style={{
-                                                        position: 'absolute',
-                                                        width: 'var(--cover-size, 32px)',
-                                                        height: 'var(--cover-size, 32px)',
-                                                        borderRadius: '6px'
-                                                    }}
+                                                    style={css(true)}
                                                 />
                                                 <span
                                                     className="tit s-fc1"
@@ -140,9 +161,7 @@ export const PlayListPage = ({ songList }) => {
                                                     data-url={song.url}
                                                     data-id={song.audio_id}
                                                     data-extName={song.extName}
-                                                    style={{
-                                                        marginLeft: 'calc(var(--cover-size, 32px) + 10px)'
-                                                    }}
+                                                    style={css(false)}
                                                 >
                                                     {song.name}
                                                 </span>
@@ -198,6 +217,10 @@ export const PlayAll = ({ songList }) => {
         CacheAudio(songList)
     }
 
+    const path = () => {
+        return (JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache').toLowerCase();
+    }
+
     return (
         <div className="u-ibtn5b u-ibtn5b-new j-oper">
             <span
@@ -209,7 +232,7 @@ export const PlayAll = ({ songList }) => {
                 data-log-action="playall"
                 data-log-source="local"
                 data-action="play"
-                data-res-data="d:\music\cloudmusic\cache\mhynotrelease_cache"
+                data-res-data={path()}
                 data-res-from="-3"
                 onClick={play}
             >
@@ -225,7 +248,7 @@ export const PlayAll = ({ songList }) => {
                 data-res-type="28"
                 data-log-action="addtoall"
                 data-log-source="local"
-                data-res-data="d:\music\cloudmusic\cache\mhynotrelease_cache"
+                data-res-data={path()}
                 data-res-from="-3"
                 onClick={play}
             >

@@ -96,7 +96,19 @@ plugin.onLoad(async () => {
         }, 50);
         if (kugou.list.includes('已全部上架') || kugou.list.includes('NetworkError') || kugou.list.includes('JSONFormatError')) return
 
-        document.querySelector('#mhy-page-root .pl-di.pl-di-1').addEventListener('click', async function (event: MouseEvent) {
+        document.querySelector('#mhy-page-root .pl-di.pl-di-1').addEventListener('click', function (event: MouseEvent) {
+            const parent = document.querySelector('#mhy-page-root .pl-di.pl-di-1');
+            parent.querySelectorAll('.j-item.z-sel').forEach((e) => {
+                e.classList.remove('z-sel');
+            });
+        
+            const target = (event.target as HTMLElement).closest('.j-item');
+            if (target) {
+                target.classList.add('z-sel');
+            }
+        });
+
+        document.querySelector('#mhy-page-root .pl-di.pl-di-1').addEventListener('dblclick', async function (event: MouseEvent) {
             const target = event.target as HTMLElement;
             const url = target.getAttribute('data-url');
             const id = target.getAttribute('data-id');
