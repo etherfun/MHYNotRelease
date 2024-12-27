@@ -1,3 +1,5 @@
+import { TipComponent } from './page';
+
 type SettingOption = {
     key: string;
     label: string;
@@ -125,48 +127,15 @@ export function Config() {
                     color: '#ff4d40'
                 }}
                     onClick={async () => {
-                        if (await betterncm.fs.remove((JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache'))) {
-                            const createElement = (tag, className = '', text = '') => {
-                                const el = document.createElement(tag);
-                                if (className) el.className = className;
-                                if (text) el.textContent = text;
-                                return el;
-                            };
-                        
-                            const body = document.querySelector('body');
-                            
-                            const resultDiv = createElement('div', 'u-result j-tips');
-                            const wrapDiv = createElement('div', 'wrap');
-                            const innerDiv = createElement('div', 'inner j-flag');
-                            const span = createElement('span', 'u-tit f-ff2', '删除成功');
-                        
-                            innerDiv.appendChild(span);
-                            wrapDiv.appendChild(innerDiv);
-                            resultDiv.appendChild(wrapDiv);
-                            body.appendChild(resultDiv);
-                        } else {
-                            const createElement = (tag, className = '', text = '') => {
-                                const el = document.createElement(tag);
-                                if (className) el.className = className;
-                                if (text) el.textContent = text;
-                                return el;
-                            };
-                        
-                            const body = document.querySelector('body');
-                            
-                            const resultDiv = createElement('div', 'u-result j-tips');
-                            const wrapDiv = createElement('div', 'wrap');
-                            const innerDiv = createElement('div', 'inner j-flag');
-                            const span = createElement('span', 'u-tit f-ff2', '删除失败, 请手动删除');
-                        
-                            innerDiv.appendChild(span);
-                            wrapDiv.appendChild(innerDiv);
-                            resultDiv.appendChild(wrapDiv);
-                            body.appendChild(resultDiv);
-                        }
-                        
+                        let message = "删除失败, 请手动删除"
+                        if (await betterncm.fs.remove(JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache\\')) message = "删除成功"
+                        const tipContainer = document.createElement('div');
+                        document.body.appendChild(tipContainer);
+                        ReactDOM.render(<TipComponent message={message} />, tipContainer);
+
                         setTimeout(() => {
-                            document.querySelector('.u-result.j-tips').remove();
+                            ReactDOM.unmountComponentAtNode(tipContainer);
+                            document.body.removeChild(tipContainer);
                         }, 2000);
                     }}>点我清除缓存
                 </span>
