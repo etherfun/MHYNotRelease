@@ -20,7 +20,7 @@ export default class kugou_source {
     public list = [];
     private infolist = [];
 
-    async kugou_enter() {//入口 | 获取初始数据
+    public async kugou_enter() {//入口 | 获取初始数据
         try {
             var response = await fetch("https://www.kugou.com/yy/?r=singer/album&sid=O34QK0ECB21E3&t=" + Date.now());
             if (!response.ok) {
@@ -38,7 +38,7 @@ export default class kugou_source {
         }
     }
 
-    getalbum(data) {//分离过时数据
+    private getalbum(data) {//分离过时数据
         const album = [];
         const now = new Date();                                         //你问我这里为什么要这样 我不知道 但是不这样时间对不上
         const sevenAndHalfDaysInMilliseconds = 7.5 * 24 * 60 * 60 * 1000 - 8 * 60 * 60 * 1000;
@@ -74,13 +74,14 @@ export default class kugou_source {
         }
     }
 
-    async album2song(data) {//获取详细信息
+    private async album2song(data) {//获取详细信息
         const cacheFilePath = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache\\MHYNotRelease.json';
-        const flie = JSON.parse(await betterncm.fs.readFileText(cacheFilePath))
-        flie.shift();
-        if (flie.length === data.length) {
-            this.list = [...flie];
-            return;
+        if (await betterncm.fs.exists(cacheFilePath)) {
+            const flie = JSON.parse(await betterncm.fs.readFileText(cacheFilePath))
+            if (flie.length === data.length) {
+                this.list = [...flie];
+                return;
+            }
         }
 
         let album2list = { album2list: [] }
@@ -123,7 +124,7 @@ export default class kugou_source {
                         album2list.album2list[i].song[l].info.hash = allSongs[l].hash;
                         album2list.album2list[i].song[l].info.sqhash = allSongs[l].sqhash;
                         album2list.album2list[i].song[l].info.hqhash = allSongs[l]["320hash"];
-                        album2list.album2list[i].song[l].info.audio_id = allSongs[l].audio_id;
+                        album2list.album2list[i].song[l].info.audio_id = `${allSongs[l].audio_id}`;
                         album2list.album2list[i].song[l].info.album_id = allSongs[l].album_id;
                         album2list.album2list[i].song[l].info.cover = allSongs[l].trans_param.union_cover;
                         album2list.album2list[i].song[l].info.name = allSongs[l].filename;
@@ -147,7 +148,7 @@ export default class kugou_source {
         this.getsongurl(album2list)
     }
 
-    getsongurl(data) {//url
+    private getsongurl(data) {//url
         let albumsong = { albumlist: [] }
 
         try {
@@ -201,7 +202,7 @@ export default class kugou_source {
         this.choose_qu(albumsong)
     }
 
-    choose_qu(data) {//音质选择
+    private choose_qu(data) {//音质选择
         let quality
         if (localStorage.getItem('MHYNotRelease-playermode') == 'native') {
             switch (JSON.parse(localStorage.getItem('MHYNotRelease-quantity'))) {//原生播放
@@ -260,7 +261,7 @@ export default class kugou_source {
         this.list2json(data)
     }
 
-    async list2json(data) {
+    private async list2json(data) {
         const albumMap = {};
 
         for (let i = 0; i < data.albumlist.length; i++) {
@@ -332,8 +333,7 @@ export default class kugou_source {
         const folder = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache';
         if (!await betterncm.fs.exists(folder)) await betterncm.fs.mkdir(folder);
         const path = `${folder}\\MHYNotRelease.json`;
-        const datalist = [new Date().getTime(), ...this.list];
-        await betterncm.fs.writeFile(path, JSON.stringify(datalist));
+        await betterncm.fs.writeFile(path, JSON.stringify(this.list));
         console.log('MHYNotRelease,已获取清单:', this.list);
     }
 }

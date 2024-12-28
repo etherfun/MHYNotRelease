@@ -5,12 +5,6 @@
 
 ![img](dist/preview.png)
 # 效果截图
-插件内置播放器
 
 ![img](previewimg/image1.png)
 ![img](previewimg/image.png)
-
-原生播放器
-
-![img](previewimg/image3.png)
-![img](previewimg/image2.png)

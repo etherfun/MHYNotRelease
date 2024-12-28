@@ -34,10 +34,10 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
   const pauseTrack = () => setIsPlaying(false);
 
   React.useEffect(() => {//获取音量
-      if (audioRef.current) {
-        audioRef.current.volume = JSON.parse(localStorage.getItem('NM_SETTING_PLAYER')).volume
-      }
-    },[JSON.parse(localStorage.getItem('NM_SETTING_PLAYER')).volume]);
+    if (audioRef.current) {
+      audioRef.current.volume = JSON.parse(localStorage.getItem('NM_SETTING_PLAYER')).volume
+    }
+  }, [JSON.parse(localStorage.getItem('NM_SETTING_PLAYER')).volume]);
 
   React.useEffect(() => {//注册SMCT
     const currentTrack = tracks[currentTrackIndex];
@@ -48,16 +48,16 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
       artwork: [{ src: currentTrack.cover.replace('orpheus://cache/?', '').replace('/240', ''), type: "image/jpeg" }]
     });
 
-      navigator.mediaSession.setActionHandler("play", () => setIsPlaying(true));
-      navigator.mediaSession.setActionHandler("pause", () => setIsPlaying(false));
-      navigator.mediaSession.setActionHandler("nexttrack", () => setCurrentTrackIndex((prev) => (prev + 1) % tracks.length));
-      navigator.mediaSession.setActionHandler("previoustrack", () => setCurrentTrackIndex((prev) => (prev - 1 + tracks.length) % tracks.length));
+    navigator.mediaSession.setActionHandler("play", () => setIsPlaying(true));
+    navigator.mediaSession.setActionHandler("pause", () => setIsPlaying(false));
+    navigator.mediaSession.setActionHandler("nexttrack", () => setCurrentTrackIndex((prev) => (prev + 1) % tracks.length));
+    navigator.mediaSession.setActionHandler("previoustrack", () => setCurrentTrackIndex((prev) => (prev - 1 + tracks.length) % tracks.length));
   }, [currentTrackIndex, tracks]);
 
   React.useEffect(() => {//显示位置
     const audioPlayer = document.querySelector('#audio-player') as HTMLElement;
     if (!audioPlayer) return
-      
+
     if (localStorage.getItem('MHYNotRelease-left0rright') == 'right') {
       if (document.body.classList.contains('floating-bottombar')) {
         audioPlayer.style.right = 'calc(50vw - var(--bottombar-width)/2)'
@@ -124,7 +124,7 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
     setFadeOut(false);
   };
   const handleMouseLeave = () => {
-      setFadeOut(true);
+    setFadeOut(true);
   };
   const handleClose = () => {
     pauseTrack();
@@ -136,36 +136,36 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
     document.querySelector('#audio-player').remove();
   };
 
-  const blurcss = () =>{//获取css样式表(兼容相关插件
-    if(localStorage.getItem("LyricBarBlurSettings")){
+  const blurcss = () => {//获取css样式表(兼容相关插件
+    if (localStorage.getItem("LyricBarBlurSettings")) {
       var css = JSON.parse(localStorage.getItem("LyricBarBlurSettings")).blur
       return css
-    }else{
+    } else {
       return 5
     }
   }
   const buttoncss = () => {
     return {
-      color: 'var(--md-accent-color-secondary)',
-      background: 'rgba(var(--md-accent-color-secondary-rgb), 0.4)',
-      borderRadius: '5px',
       border: 'none',
-      margin: '0 5px'
+      margin: '0 5px',
+      height: '20px',
+      width: '20px',
+      fill: 'var(--md-accent-color)'
     }
   }
-  const opacitycss = () =>{
-    if(localStorage.getItem("LyricBarBlurSettings")){
+  const opacitycss = () => {
+    if (localStorage.getItem("LyricBarBlurSettings")) {
       var css = JSON.parse(localStorage.getItem("LyricBarBlurSettings")).bgTrans
       return css
-    }else{
+    } else {
       return 0.4
     }
-    
+
   }
-  const bgcss = () =>{
-    if(document.body.classList.contains('material-you-theme')){
+  const bgcss = () => {
+    if (document.body.classList.contains('material-you-theme')) {
       return 'var(--md-accent-color)'
-    }else{
+    } else {
       return 'var(--themePlay)'
     }
   }
@@ -183,7 +183,7 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
         alignItems: 'center',
         color: "var(--md-accent-color-secondary)",
         overflow: "hidden",
-        backdropFilter: 'blur('+ blurcss() +'px)',
+        backdropFilter: 'blur(' + blurcss() + 'px)',
         width: 'auto',
         background: 'rgba(var(--md-accent-color-bg-rgb, var(--ncm-fg-rgb)), 0.4)',
         height: 'auto'
@@ -202,7 +202,7 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
             borderRadius: '50%',
             width: '15px',
             height: '15px',
-            background: 'rgba(var(--md-accent-color-secondary-rgb),'+ opacitycss()/10 +')',
+            background: 'rgba(var(--md-accent-color-secondary-rgb),' + opacitycss() / 10 + ')',
             color: 'var(--md-accent-color-secondary)',
             transition: 'opacity 2s',
             opacity: fadeOut ? 0 : 1,
@@ -212,13 +212,13 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
           ×
         </button>
       )}
-      
+
       <div className="fullplayerbar"
         onClick={handleSeek}
         style={{
           width: '100%',
           height: '5px',
-          background: 'linear-gradient(0deg, rgba(var(--md-accent-color-rgb), 0.15), rgba(var(--md-accent-color-rgb),' + opacitycss()/10 + ')',
+          background: 'linear-gradient(0deg, rgba(var(--md-accent-color-rgb), 0.15), rgba(var(--md-accent-color-rgb),' + opacitycss() / 10 + ')',
           cursor: 'pointer',
           borderRadius: '2px',
           marginBottom: '8px'
@@ -265,33 +265,45 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
             alignItems: 'center'
           }}>
             <span style={{ width: '40px', textAlign: 'center' }}>{currentTime}</span>
-            <button
+            <div
+              className="btnc btnc-prv f-cp"
               onClick={previousTrack}
               style={buttoncss()}
             >
-              上一首
-            </button>
+              <svg className="svg">
+                <use xlinkHref="orpheus://orpheus/style/res/svg/btmbar.sp.svg#icon24-play-last"></use>
+              </svg>
+            </div>
             {isPlaying ? (
-              <button
+              <div
+                className="btnp btnp-pause f-cp"
                 onClick={pauseTrack}
                 style={buttoncss()}
               >
-                暂停
-              </button>
+                <svg className="svg">
+                  <use xlinkHref="orpheus://orpheus/style/res/svg/btmbar.sp.svg#icon24-play-pause"></use>
+                </svg>
+              </div>
             ) : (
-              <button
+              <div
+                className="btnp btnp-play f-cp"
                 onClick={playTrack}
                 style={buttoncss()}
               >
-                播放
-              </button>
+                <svg className="svg">
+                  <use xlinkHref="orpheus://orpheus/style/res/svg/btmbar.sp.svg#icon24-play-play"></use>
+                </svg>
+              </div>
             )}
-            <button
+            <div
+              className="btnc btnc-nxt f-cp"
               onClick={nextTrack}
               style={buttoncss()}
             >
-              下一首
-            </button>
+              <svg className="svg">
+                <use xlinkHref="orpheus://orpheus/style/res/svg/btmbar.sp.svg#icon24-play-next"></use>
+              </svg>
+            </div>
             <span style={{ width: '40px', textAlign: 'center' }}>{totalTime}</span>
           </div>
         </div>
@@ -307,4 +319,4 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
   );
 };
 
-export { AudioPlayer } ;
+export { AudioPlayer };

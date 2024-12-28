@@ -28,8 +28,7 @@ plugin.onLoad(async () => {
         if (document.getElementById('wonhyle-tab')) document.getElementById('wonhyle-tab').remove();
         if (document.getElementById('mhy-page-root')) document.getElementById('mhy-page-root').remove();
 
-        await betterncm.utils.delay(100)
-
+        await betterncm.utils.delay(100);
 
         let womhyle = document.createElement('a');
         womhyle.className = 'j-flxg';
@@ -113,11 +112,6 @@ plugin.onLoad(async () => {
                 if (localStorage.getItem('MHYNotRelease-playermode') == 'native') {
                     await CacheAudio([json], albumId, undefined, index);
 
-                    const addDownloadIcon = document.createElement('span');
-                    addDownloadIcon.className = 'td col s-fc4';
-                    ReactDOM.render(<DownloadIcon/>, addDownloadIcon);
-                    target.prepend(addDownloadIcon);
-
                     const Path = await betterncm.app.getNCMPath() + '\\cloudmusic.exe'
                     const CachePath = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + `\\Cache\\MHYNotRelease_Cache\\${albumId}\\`
 
@@ -130,7 +124,9 @@ plugin.onLoad(async () => {
                     const playerContainer = document.createElement('div');
                     playertarget.appendChild(playerContainer);
                     root.style.display = null;
-                    ReactDOM.render(<AudioPlayer url={url} tracks={kugou.list} />, playerContainer);
+
+                    const songs = kugou.list.find(song => song.album_id === albumId)?.songs;
+                    ReactDOM.render(<AudioPlayer url={url} tracks={songs} />, playerContainer);
                 }
             });
     });

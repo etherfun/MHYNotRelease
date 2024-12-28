@@ -85,11 +85,13 @@ export const PlayListPage = ({ songList }) => {
         }));
     };
 
-    const DownloadIcon = ({ path }: { path: string }) => {
+    const DownloadIcon = ({ path, id }: { path: string, id: string }) => {
         const [isDownloaded, setIsDownloaded] = React.useState(false);
 
         const checkDownloadStatus = async () => {
-            const result = await checkDownloaded(path);
+            const target = document.querySelector(`li[data-songid='${id}']`);
+            const check = (target && !target.querySelector('span .td.col.s-fc4')) 
+            const result = check && await checkDownloaded(path);
             setIsDownloaded(result);
         };
 
@@ -236,10 +238,11 @@ export const PlayListPage = ({ songList }) => {
                                             <li
                                                 data-number={index + 1}
                                                 key={song.audio_id}
+                                                data-songid={song.audio_id}
                                                 className="itm j-item j-impress"
                                                 data-songjson={JSON.stringify(song)}
                                             >
-                                                <DownloadIcon path={path + `${song.album_id}\\${song.audio_id}.${song.extName}`} />
+                                                <DownloadIcon path={path + `${song.album_id}\\${song.audio_id}.${song.extName}`} id={song.audio_id} />
                                                 <div className="flow">
                                                     <div className="td col title">
                                                         <img
@@ -411,7 +414,7 @@ export const NetworkErrorPage = ({ ErrorCode, context }) => {
             >
                 网络错误,如果您网络正常,则可能服务器返回数据错误或API访问拒绝
                 <br />
-                网络错误代码:{ErrorCode}
+                网络错误代码:{ErrorCode || "未知错误"}
                 <br />
                 错误信息(点击可复制):
                 <br />
@@ -431,7 +434,7 @@ export const NetworkErrorPage = ({ ErrorCode, context }) => {
                         cursor: "pointer",
                         color: "var(--md-accent-color)"
                     }}>
-                    {context}
+                    {context || "未知错误"}
                 </span>
             </span>
             <br />
@@ -494,7 +497,7 @@ export const JSONFormatErrorPage = ({ context }) => {
                         cursor: "pointer",
                         color: "var(--md-accent-color)"
                     }}>
-                    {context}
+                    {context || "未知错误"}
                 </span>
             </span>
             <br />

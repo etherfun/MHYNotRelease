@@ -1,5 +1,5 @@
 import { ID3Writer } from 'browser-id3-writer';
-import { TipComponent } from '../ui/page';
+import { TipComponent, DownloadIcon } from '../ui/page';
 
 interface AlbumList {
     album_id: string;
@@ -20,9 +20,9 @@ interface songs {
     audio_id: string;
 };
 
-export async function CacheAudioList (list: AlbumList[]) {
+export async function CacheAudioList(list: AlbumList[]) {
     const dist = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath;
-    
+
     for (let albumIndex = 0; albumIndex < list.length; albumIndex++) {
         const album = list[albumIndex];
         const songs = album.songs;
@@ -82,6 +82,14 @@ export async function CacheAudio(
             }
             await betterncm.fs.writeFile(filePath_muisc, audioBlob);
 
+            const target = document.querySelector(`li[data-songid='${song.audio_id}']`);
+            if (target && !target.querySelector('span .td.col.s-fc4')) {
+                const addDownloadIcon = document.createElement('span');
+                addDownloadIcon.className = 'td col s-fc4';
+                ReactDOM.render(<DownloadIcon />, addDownloadIcon);
+                target.prepend(addDownloadIcon);
+            }
+
             if (songs.length !== 1) betterncm.utils.delay(Math.random() * 1000 + 1000);
         } catch (error) {
             console.error('MHYNotRelease, 缓存歌曲失败,', error);
@@ -97,7 +105,7 @@ export async function CacheAudio(
             }, 2000);
         }
     }
-    
+
     return true;
 }
 
