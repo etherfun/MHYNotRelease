@@ -77,9 +77,11 @@ export default class kugou_source {
     private async album2song(data) {//获取详细信息
         const cacheFilePath = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache\\MHYNotRelease.json';
         if (await betterncm.fs.exists(cacheFilePath)) {
-            const flie = JSON.parse(await betterncm.fs.readFileText(cacheFilePath))
-            if (flie.length === data.length) {
-                this.list = [...flie];
+            const file = JSON.parse(await betterncm.fs.readFileText(cacheFilePath));
+            const allEqual = data.some((item, index) => item.albumid !== file[index].album_id);
+
+            if (allEqual) {
+                this.list = [...file];
                 return;
             }
         }
@@ -238,24 +240,22 @@ export default class kugou_source {
 
         for (let i = 0; i < data.albumlist.length; i++) {
             for (let l = 0; l < data.albumlist[i].song.length; l++) {
-                let url;
                 switch (quality) {
                     case "origin":
-                        url = data.albumlist[i].song[l].url.origin;
+                        data.albumlist[i].song[l].url = data.albumlist[i].song[l].url.origin;
                         break;
                     case "hq":
-                        url = data.albumlist[i].song[l].url.hq;
+                        data.albumlist[i].song[l].url = data.albumlist[i].song[l].url.hq;
                         break;
                     case "sq":
-                        url = data.albumlist[i].song[l].url.sq;
+                        data.albumlist[i].song[l].url = data.albumlist[i].song[l].url.sq;
                         break;
                     default:
-                        url = data.albumlist[i].song[l].url.origin;
+                        data.albumlist[i].song[l].url = data.albumlist[i].song[l].url.origin;
 
                         this.list.push('JSONformatError');
                         console.error("MHYNotRelease: 音质选择错误");
                 }
-                data.albumlist[i].song[l].url = url;
             }
         }
         this.list2json(data)
@@ -286,7 +286,7 @@ export default class kugou_source {
                     var song = {
                         originhash: data.albumlist[i].song[l].originhash,
                         extName: data_get.extName,
-                        url: data_get.url[0],
+                        url: data.albumlist[i].song[l].url,
                         time: data_get.timeLength,
                         albumname: data.albumlist[i].song[l].albumname,
                         name: parts[1],
@@ -318,11 +318,11 @@ export default class kugou_source {
             this.list.push({
                 album_id: album_id,
                 songs: albumMap[album_id],
-                album_name: albumInfo?.album_name || '',
-                singername: albumInfo?.singername || '',
-                coverurl: albumInfo?.coverurl || '',
-                publish_time: albumInfo?.publish_time || '',
-                publish_time_real: albumInfo?.publish_time_real || ''
+                album_name: albumInfo?.album_name,
+                singername: albumInfo?.singername,
+                coverurl: albumInfo?.coverurl,
+                publish_time: albumInfo?.publish_time,
+                publish_time_real: albumInfo?.publish_time_real
             });
         }
 
@@ -336,4 +336,18 @@ export default class kugou_source {
         await betterncm.fs.writeFile(path, JSON.stringify(this.list));
         console.log('MHYNotRelease,已获取清单:', this.list);
     }
+}
+
+export async function getUrl(url: string) {
+    try {
+        var response = await fetch(url);
+        var json = await response.json();
+        if (!response.ok) {
+            throw new Error('网络错误! status:' + `${response.status}`);
+        }
+    } catch (error) {
+        console.error('MHYNotRelease,提取歌曲失败,', error);
+        return;
+    }
+    return json.url[0];
 }

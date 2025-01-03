@@ -1,3 +1,5 @@
+import { getUrl } from '../source/kugou';
+
 interface Track {
   url: string;
   name: string;
@@ -117,6 +119,14 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
     return `${minutes}:${secs < 10 ? "0" : ""}${secs}`;
   };
   const currentTrack = tracks[currentTrackIndex];
+  const [trackUrl, setTrackUrl] = React.useState<string>('');
+  React.useEffect(() => {
+    const fetchTrackUrl = async () => {
+      setTrackUrl(await getUrl(currentTrack.url));
+    };
+
+    fetchTrackUrl();
+  }, [currentTrack]); // 依赖于currentTrack
   const totalTime = formatTime(currentTrack.time);
 
   const handleMouseEnter = () => {//关闭按钮及相关逻辑
@@ -310,7 +320,7 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
       </div>
       <audio
         ref={audioRef}
-        src={currentTrack.url}
+        src={trackUrl}
         onEnded={nextTrack}
         onTimeUpdate={handleTimeUpdate}
         autoPlay

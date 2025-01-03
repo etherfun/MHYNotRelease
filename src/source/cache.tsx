@@ -1,5 +1,6 @@
 import { ID3Writer } from 'browser-id3-writer';
 import { TipComponent, DownloadIcon } from '../ui/page';
+import { getUrl } from './kugou';
 
 interface AlbumList {
     album_id: string;
@@ -53,12 +54,11 @@ export async function CacheAudio(
         try {
             let audioBlob: Blob;
             let coverArrayBuffer: ArrayBuffer;
-
-            const response = await fetch(song.url);
+            const response = await fetch(await getUrl(song.url));
             let arrayBuffer = await response.arrayBuffer();
-
             const coverResponse = await fetch(song.cover.replace('orpheus://cache/?', ''));
             coverArrayBuffer = await coverResponse.arrayBuffer();
+            if (!(response.ok && coverResponse.ok)) return;
 
             if (song.extName === 'mp3') {
                 const writer = new ID3Writer(arrayBuffer);
@@ -80,10 +80,9 @@ export async function CacheAudio(
             if (!await betterncm.fs.exists(filePath_lrc) || await betterncm.fs.readFileText(filePath_lrc) == '') {
                 betterncm.fs.writeFileText(filePath_lrc, await getlyric(song));
             }
-            await betterncm.fs.writeFile(filePath_muisc, audioBlob);
-
+            
             const target = document.querySelector(`li[data-songid='${song.audio_id}']`);
-            if (target && !target.querySelector('span .td.col.s-fc4')) {
+            if (await betterncm.fs.writeFile(filePath_muisc, audioBlob) && target && !target.querySelector('span .td.col.s-fc4')) {
                 const addDownloadIcon = document.createElement('span');
                 addDownloadIcon.className = 'td col s-fc4';
                 ReactDOM.render(<DownloadIcon />, addDownloadIcon);
@@ -105,7 +104,6 @@ export async function CacheAudio(
             }, 2000);
         }
     }
-
     return true;
 }
 

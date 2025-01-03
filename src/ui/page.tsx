@@ -87,17 +87,24 @@ export const PlayListPage = ({ songList }) => {
 
     const DownloadIcon = ({ path, id }: { path: string, id: string }) => {
         const [isDownloaded, setIsDownloaded] = React.useState(false);
-
         const checkDownloadStatus = async () => {
             const target = document.querySelector(`li[data-songid='${id}']`);
-            const check = (target && !target.querySelector('span .td.col.s-fc4')) 
-            const result = check && await checkDownloaded(path);
-            setIsDownloaded(result);
-        };
-
-        React.useEffect(() => {
-            checkDownloadStatus();
-        }, [path]);
+            if (target) {
+              const check = !target.querySelector('.td.col.s-fc4 span');
+              if (check) {
+                const result = await checkDownloaded(path);
+                setIsDownloaded(result);
+              }
+            }
+          };
+        
+          React.useEffect(() => {
+            const timeout = setTimeout(() => {
+              checkDownloadStatus();
+            }, 100);
+        
+            return () => clearTimeout(timeout);
+          }, [path, id]);
 
         return (isDownloaded ?
             <span className="td col s-fc4">
