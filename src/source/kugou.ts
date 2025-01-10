@@ -78,11 +78,14 @@ export default class kugou_source {
         const cacheFilePath = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache\\MHYNotRelease.json';
         if (await betterncm.fs.exists(cacheFilePath)) {
             const file = JSON.parse(await betterncm.fs.readFileText(cacheFilePath));
-            const allEqual = data.some((item, index) => item.albumid !== file[index].album_id);
-
-            if (allEqual) {
-                this.list = [...file];
-                return;
+            
+            if (file.length == data.length) {
+                const allEqual = data.every((item, index) => item.albumid == file[index]?.album_id);
+                console.log(allEqual);
+                if (allEqual) {
+                    this.list = [...file];
+                    return;
+                }
             }
         }
 

@@ -4,7 +4,7 @@ type SettingOption = {
     key: string;
     label: string;
     defaultValue: string;
-    options: Array<{ label: string; value: string}>;
+    options: Array<{ label: string; value: string }>;
 };
 
 const settingOptions: SettingOption[] = [
@@ -127,8 +127,14 @@ export function Config() {
                     color: '#ff4d40'
                 }}
                     onClick={async () => {
-                        let message = "删除失败, 请手动删除"
-                        if (await betterncm.fs.remove(JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache\\')) message = "删除成功"
+                        let message = "删除成功";
+                        const cacheFilePath = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache\\';
+                        for (let id of JSON.parse(await betterncm.fs.readFileText(cacheFilePath + "MHYNotRelease.json"))) {
+                            if (!await betterncm.fs.remove(cacheFilePath + id.album_id)) {
+                                message = "删除失败, 请手动删除";
+                                break;
+                            }
+                        }
                         const tipContainer = document.createElement('div');
                         document.body.appendChild(tipContainer);
                         ReactDOM.render(<TipComponent message={message} />, tipContainer);
@@ -139,7 +145,7 @@ export function Config() {
                         }, 2000);
                     }}>点我清除缓存
                 </span>
-                <span> 点击后如果无法删除可能是您正在播放缓存中的歌曲</span>  
+                <span> 点击后如果无法删除可能是您正在播放缓存中的歌曲</span>
             </h1>
             <br />
             <h1>为什么单独写一个播放器? 因为找不到网易云播放接口(在现在还是找不到但是用了一些奇怪的方法来实现原生播放) 凑合用吧</h1>

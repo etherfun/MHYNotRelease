@@ -89,7 +89,7 @@ export async function CacheAudio(
                 target.prepend(addDownloadIcon);
             }
 
-            if (songs.length !== 1) betterncm.utils.delay(Math.random() * 1000 + 1000);
+            if (songs.length !== 1) betterncm.utils.delay(Math.random() * 500);
         } catch (error) {
             console.error('MHYNotRelease, 缓存歌曲失败,', error);
 
