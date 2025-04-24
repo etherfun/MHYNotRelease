@@ -1,7 +1,7 @@
 import { Config } from "./ui/config";
-import { PlayListPage, NoNotReleasePage, NetworkErrorPage, JSONFormatErrorPage, PlayAll, DownloadIcon} from "./ui/page";
+import { PlayListPage, NoNotReleasePage, NetworkErrorPage, JSONFormatErrorPage, LoadingPage} from "./ui/page";
 import kugou_source from "./source/kugou"
-let kugou = new kugou_source()
+const kugou = new kugou_source()
 import { AudioPlayer } from './ui/player';
 import { CacheAudio } from './source/cache'
 
@@ -67,6 +67,7 @@ plugin.onLoad(async () => {
             kugou.list = [];
             kugou.kugou_enter();
         }
+        ReactDOM.render(<LoadingPage />, root);
         await betterncm.utils.waitForFunction(() => {
             if (kugou.list.includes('已全部上架')) {
                 ReactDOM.render(<NoNotReleasePage />, root);
@@ -104,13 +105,13 @@ plugin.onLoad(async () => {
 
                 const json = JSON.parse(target.getAttribute('data-songjson'));
                 const url = json.url;
-                const id = (json.audio_id).toString();
+                const id = json.audio_id;
                 const albumId = json.album_id;
-                const extName = json.extName;
+                const extName = localStorage.getItem('MHYNotRelease-playermode') === 'native' || ["128", "320"].includes(localStorage.getItem('MHYNotRelease-quantity')) ? 'mp3' : 'flac';
                 const index = Number(target.getAttribute('data-number'));
-                console.log('MHYNotRelease,当前播放URL&id:' + url, id);
+                console.log('MHYNotRelease,当前播放URL&id:' , url, id);
                 if (localStorage.getItem('MHYNotRelease-playermode') == 'native') {
-                    await CacheAudio([json], albumId, undefined, index);
+                    await CacheAudio([json], albumId, undefined, index, extName);
 
                     const Path = await betterncm.app.getNCMPath() + '\\cloudmusic.exe'
                     const CachePath = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + `\\Cache\\MHYNotRelease_Cache\\${albumId}\\`
@@ -126,7 +127,7 @@ plugin.onLoad(async () => {
                     root.style.display = null;
 
                     const songs = kugou.list.find(song => song.album_id === albumId)?.songs;
-                    ReactDOM.render(<AudioPlayer url={url} tracks={songs} />, playerContainer);
+                    ReactDOM.render(<AudioPlayer allUrl={url} tracks={songs} />, playerContainer);
                 }
             });
     });

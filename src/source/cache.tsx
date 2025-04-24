@@ -10,7 +10,7 @@ interface AlbumList {
 interface songs {
     originhash: string
     extName: string;
-    url: string;
+    url: { origin: string, hq: string, sq: string };
     time: number;
     albumname: string;
     name: string;
@@ -36,7 +36,8 @@ export async function CacheAudio(
     songs: songs[],
     album_id: string,
     dist: string = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath,
-    songIndex: number = 1
+    songIndex: number = 1,
+    extName: string = ".mp3"
 ) {
     const folder = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + `\\Cache\\MHYNotRelease_Cache\\${album_id}\\`
     if (!await betterncm.fs.exists(folder)) await betterncm.fs.mkdir(folder);
@@ -44,7 +45,7 @@ export async function CacheAudio(
     for (let i = 0, e = 1; i < songs.length; i++, songIndex++) {
 
         const song = songs[i];
-        const filePath_muisc = `${dist}\\Cache\\MHYNotRelease_Cache\\${album_id}\\${song.audio_id}.${song.extName}`;
+        const filePath_muisc = `${dist}\\Cache\\MHYNotRelease_Cache\\${album_id}\\${song.audio_id}.${extName}`;
         const filePath_lrc = `${dist}\\Cache\\MHYNotRelease_Cache\\${album_id}\\${song.audio_id}.lrc`;
 
         if (await checkDownloaded(filePath_muisc)) {
@@ -56,11 +57,11 @@ export async function CacheAudio(
             let coverArrayBuffer: ArrayBuffer;
             const response = await fetch(await getUrl(song.url));
             let arrayBuffer = await response.arrayBuffer();
-            const coverResponse = await fetch(song.cover.replace('orpheus://cache/?', ''));
+            const coverResponse = await fetch(song.cover.replace('/240', '/480'));
             coverArrayBuffer = await coverResponse.arrayBuffer();
             if (!(response.ok && coverResponse.ok)) return;
 
-            if (song.extName === 'mp3') {
+            if (extName === 'mp3') {
                 const writer = new ID3Writer(arrayBuffer);
                 writer
                     .setFrame('TIT2', song.name) // 标题
@@ -89,7 +90,7 @@ export async function CacheAudio(
                 target.prepend(addDownloadIcon);
             }
 
-            if (songs.length !== 1) betterncm.utils.delay(Math.random() * 500);
+            if (songs.length !== 1) betterncm.utils.delay(Math.random() * 100000);
         } catch (error) {
             console.error('MHYNotRelease, 缓存歌曲失败,', error);
 
@@ -118,11 +119,12 @@ export async function checkDownloaded(audioPath: string) {
 
 async function getlyric(list) {
     try {
-        var response_key = await fetch(`https://krcs.kugou.com/search?ver=1&man=yes&client=mobi&keyword=&duration=&hash=${list.originhash}`);
+        var response_key = await fetch(`https://krcs.kugou.com/search?ver=1&man=yes&client=mobi&keyword=&duration=&hash=${list.hash}`);
         if (!response_key.ok) {
             throw new Error('网络错误! status:' + `${response_key.status}`);
         }
         var getlyric = await response_key.json();
+        if (getlyric.candidates.length < 1) return null;
 
         await betterncm.utils.delay(500)
         var response = await fetch(`http://lyrics.kugou.com/download?ver=1&client=pc&id=${getlyric.candidates[0].id}&accesskey=${getlyric.candidates[0].accesskey}&fmt=lrc&charset=utf8`);

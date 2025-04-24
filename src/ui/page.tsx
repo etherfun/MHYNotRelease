@@ -1,4 +1,5 @@
-import { CacheAudio, CacheAudioList, checkDownloaded } from "../source/cache";
+import { CacheAudio, checkDownloaded } from "../source/cache";
+
 
 export const PlayListPage = ({ songList }) => {
     const sevenAndHalfDaysInMilliseconds = 7.5 * 24 * 60 * 60 * 1000 - 8 * 60 * 60 * 1000;
@@ -27,7 +28,7 @@ export const PlayListPage = ({ songList }) => {
         };
     }
 
-    const CountdownTimer = ({ initialPublishTime }: { initialPublishTime: PublishTime }) => {//预计时间计算
+    const CountdownTimer = React.memo(({ initialPublishTime }: { initialPublishTime: PublishTime }) => {//预计时间计算
         const [publishTime, setPublishTime] = React.useState<PublishTime>(initialPublishTime);
         React.useEffect(() => {
             const timer = setInterval(() => {
@@ -69,7 +70,7 @@ export const PlayListPage = ({ songList }) => {
                 {(publishTime.day == 0 && publishTime.hour == 0 && publishTime.minute == 0 && publishTime.second == 0) ? `${publishTime.str}` : ""}
             </div>
         );
-    };
+    });
 
     const formatTimeInSeconds = (seconds) => {//歌曲时长计算
         const minutes = Math.floor(seconds / 60);
@@ -77,34 +78,29 @@ export const PlayListPage = ({ songList }) => {
         return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
     };
 
-    const [expandedAlbums, setExpandedAlbums] = React.useState<Record<string, boolean>>({});
-    const toggleExpand = (album_id: string) => {
-        setExpandedAlbums((prev) => ({
-            ...prev,
-            [album_id]: !prev[album_id]
-        }));
-    };
+    const [currentPages, setCurrentPages] = React.useState<Record<string, number>>({});
+    const songsPerPage = 10;
 
     const DownloadIcon = ({ path, id }: { path: string, id: string }) => {
         const [isDownloaded, setIsDownloaded] = React.useState(false);
         const checkDownloadStatus = async () => {
             const target = document.querySelector(`li[data-songid='${id}']`);
             if (target) {
-              const check = !target.querySelector('.td.col.s-fc4 span');
-              if (check) {
-                const result = await checkDownloaded(path);
-                setIsDownloaded(result);
-              }
+                const check = !target.querySelector('.td.col.s-fc4 span');
+                if (check) {
+                    const result = await checkDownloaded(path);
+                    setIsDownloaded(result);
+                }
             }
-          };
-        
-          React.useEffect(() => {
+        };
+
+        React.useEffect(() => {
             const timeout = setTimeout(() => {
-              checkDownloadStatus();
+                checkDownloadStatus();
             }, 100);
-        
+
             return () => clearTimeout(timeout);
-          }, [path, id]);
+        }, [path, id]);
 
         return (isDownloaded ?
             <span className="td col s-fc4">
@@ -162,9 +158,9 @@ export const PlayListPage = ({ songList }) => {
                             className="u-cover u-cover-mix u-cover-alb f-fl"
                             style={{
                                 borderRadius: '10px',
-                                width: '150px',
-                                height: '150px',
-                                marginRight: '20px'
+                                width: '190px',
+                                height: '190px',
+                                marginRight: '30px'
                             }}
                         >
                             <img
@@ -202,6 +198,7 @@ export const PlayListPage = ({ songList }) => {
                                 <CountdownTimer initialPublishTime={formatTimeDifference(sevenAndHalfDaysInMilliseconds - (new Date().getTime() - new Date(album.publish_time).getTime()))} />
                             </span>
                             <PlayAll songList={album.songs} ablumid={album.album_id} />
+                            <PlayAllInCache ablumid={album.album_id} />
                         </div>
                     </div>
 
@@ -240,16 +237,19 @@ export const PlayListPage = ({ songList }) => {
                             <div className="lst fixed-scroll-management" id="all-songs-list-wrapper-2">
                                 <ul style={{ counterReset: "tlistorder 0" }}>
                                     {album.songs
-                                        .slice(0, expandedAlbums[album.album_id] ? album.songs.length : 10)
+                                        .slice(
+                                            ((currentPages[album.album_id] || 1) - 1) * songsPerPage,
+                                            (currentPages[album.album_id] || 1) * songsPerPage
+                                        )
                                         .map((song, index) => (
                                             <li
-                                                data-number={index + 1}
+                                                data-number={index + 1 + ((currentPages[album.album_id] || 1) - 1) * songsPerPage}
                                                 key={song.audio_id}
                                                 data-songid={song.audio_id}
                                                 className="itm j-item j-impress"
                                                 data-songjson={JSON.stringify(song)}
                                             >
-                                                <DownloadIcon path={path + `${song.album_id}\\${song.audio_id}.${song.extName}`} id={song.audio_id} />
+                                                <DownloadIcon path={path + `${song.album_id}\\${song.audio_id}.${localStorage.getItem('MHYNotRelease-playermode') === 'native' || ["128", "320"].includes(localStorage.getItem('MHYNotRelease-quantity')) ? 'mp3' : 'flac'}`} id={song.audio_id} />
                                                 <div className="flow">
                                                     <div className="td col title">
                                                         <img
@@ -287,22 +287,15 @@ export const PlayListPage = ({ songList }) => {
                                             </li>
                                         ))}
                                 </ul>
-                                {album.songs.length > 10 && (
-                                    <div
-                                        className="show-more"
-                                        style={{
-                                            width: 'max-content',
-                                            cursor: 'pointer',
-                                            margin: '10px',
-                                            alignItems: 'flex-end',
-                                            marginLeft: 'auto',
-                                            marginRight: '5%',
-                                            color: 'var(--md-accent-color)'
-                                        }}
-                                        onClick={() => toggleExpand(album.album_id)}
-                                    >
-                                        {expandedAlbums[album.album_id] ? '收起' : `显示全部 ${album.songs.length} 首`}
-                                    </div>
+                                {album.songs.length > songsPerPage && (
+                                    <CloudMusicPagination
+                                        currentPage={currentPages[album.album_id] || 1}
+                                        totalPages={Math.ceil(album.songs.length / songsPerPage)}
+                                        onPageChange={(page) => setCurrentPages(prev => ({
+                                            ...prev,
+                                            [album.album_id]: page
+                                        }))}
+                                    />
                                 )}
                             </div>
                         </div>
@@ -315,13 +308,13 @@ export const PlayListPage = ({ songList }) => {
     );
 }
 
-export const PlayAll = ({ songList, ablumid}: { songList: any[], ablumid?: string }) => {
+export const PlayAll = ({ songList, ablumid }: { songList: any[], ablumid?: string }) => {
     const play = () => {
-            CacheAudio(songList, ablumid, undefined);
+        CacheAudio(songList, ablumid, undefined);
     }
 
     const path = () => {
-            return (JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + `\\Cache\\MHYNotRelease_Cache\\${ablumid}`).toLowerCase();
+        return (JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + `\\Cache\\MHYNotRelease_Cache\\${ablumid}`).toLowerCase();
     }
 
     return (
@@ -366,17 +359,60 @@ export const PlayAll = ({ songList, ablumid}: { songList: any[], ablumid?: strin
     )
 }
 
+export const PlayAllInCache = ({ ablumid }: { ablumid: string }) => {
+    const path = () => {
+        return (JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + `\\Cache\\MHYNotRelease_Cache\\${ablumid}`).toLowerCase();
+    }
+
+    return (
+        <div
+            className="u-ibtn5b u-ibtn5b-new j-oper"
+            style={{ width: 'max-content', marginTop: '10px' }}
+        >
+            <span
+                className="u-ibtn5 u-ibtn5-new u-ibtn5-ply"
+                title={`替换播放列表播放 | 播放顺序可能混乱`}
+
+                data-res-action="play"
+                data-res-type="28"
+                data-log-action="playall"
+                data-log-source="local"
+                data-action="play"
+                data-res-data={path()}
+                data-res-from="-3"
+            >
+                <svg>
+                    <use xlinkHref="orpheus://orpheus/style/res/svg/icon.sp.svg#btn_play_sml"></use>
+                </svg>播放全部已缓存歌曲
+            </span>
+            <span
+                className="u-ibtn5 u-ibtn5-new u-ibtn5-only u-ibtn5-addto"
+                title={`添加全部已缓存歌曲到播放列表 | 播放顺序可能混乱`}
+
+                data-res-action="queue"
+                data-res-type="28"
+                data-log-action="addtoall"
+                data-log-source="local"
+                data-res-data={path()}
+                data-res-from="-3"
+            >
+                <svg>
+                    <use xlinkHref="orpheus://orpheus/style/res/svg/icon.sp.svg#btn_addto_list"></use>
+                </svg>
+            </span>
+        </div>
+    )
+}
+
 export const NoNotReleasePage = () => {
     return (
         <div className="m-plylist m-plylist-pl2 m-plylist_playlist m-plylist-sort">
             <span style={{
-                marginRight: "10px",
-                marginTop: "10px",
-                marginBottom: "10px",
-                display: "inline-block",
-                verticalAlign: "middle",
-                paddingLeft: "20px",
-                paddingBottom: "20px",
+                fontSize: "20px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                padding: "20px",
                 color: "var(--md-accent-color-secondary)"
             }}
             >已全部上架(应该)</span>
@@ -558,3 +594,129 @@ export const DownloadIcon = () => {
         </span>
     );
 };
+
+interface CloudMusicPaginationProps {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+}
+
+export const CloudMusicPagination = ({
+    currentPage,
+    totalPages,
+    onPageChange,
+}: CloudMusicPaginationProps) => {
+    const React: typeof import('react') = window.React;
+
+    const [jumpPage, setJumpPage] = React.useState('');
+
+    const handleJump = () => {
+        const pageNum = parseInt(jumpPage);
+        if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+            onPageChange(pageNum);
+            setJumpPage('');
+        }
+    };
+
+    const handleKeyDown = (e: import('react').KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleJump();
+        }
+    };
+
+    return (
+        <div className="m-page m-page-4">
+            <a
+                className={`zbtn zprv ${currentPage <= 1 ? 'js-disabled' : ''}`}
+                onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+            >
+                <svg>
+                    <use xlinkHref="orpheus://orpheus/style/res/svg/icon.sp.svg#page_pre"></use>
+                </svg>
+            </a>
+
+            <a className="zpgi zpg1 js-selected">
+                {currentPage} / {totalPages}
+            </a>
+
+            <a
+                className={`zbtn znxt ${currentPage >= totalPages ? 'js-disabled' : ''}`}
+                onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
+            >
+                <svg>
+                    <use xlinkHref="orpheus://orpheus/style/res/svg/icon.sp.svg#page_next"></use>
+                </svg>
+            </a>
+
+            <div
+                className="u-lcsch j-flag"
+                style={{
+                    verticalAlign: 'middle',
+                    width: '50px',
+                    height: '30px',
+                    marginLeft: '10px',
+                    display: 'inline-block'
+                }}
+            >
+                <input
+                    id="page-jump"
+                    type="text"
+                    placeholder="页码"
+                    value={jumpPage}
+                    onChange={(e) => setJumpPage(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    style={{
+                        fontSize: '12px',
+                        paddingRight: '10px',
+                        width: '100%',
+                        height: '100%'
+                    }}
+                />
+            </div>
+
+            <a className="zpgi" onClick={handleJump}>
+                跳转
+            </a>
+        </div>
+    );
+}
+
+export const LoadingPage = () => {
+    return (
+        <div className="m-plylist m-plylist-pl2 m-plylist_playlist m-plylist-sort">
+            <span style={{
+                fontSize: "20px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                padding: "20px",
+                color: "var(--md-accent-color-secondary)"
+            }}>
+                正在加载中...
+            </span>
+            
+            <div style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                padding: "20px"
+            }}>
+                <div style={{
+                    width: "50px",
+                    height: "50px",
+                    border: "5px solid var(--md-accent-color-secondary)",
+                    borderTopColor: "transparent",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite"
+                }}></div>
+            </div>
+            
+            <style>{`
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `}</style>
+        </div>
+    )
+}

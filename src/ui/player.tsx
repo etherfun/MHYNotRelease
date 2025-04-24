@@ -1,7 +1,7 @@
 import { getUrl } from '../source/kugou';
 
 interface Track {
-  url: string;
+  url: { origin: string, hq: string, sq: string };
   name: string;
   cover: string;
   time: number;
@@ -9,7 +9,7 @@ interface Track {
   albumname: string;
 }
 
-const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
+const AudioPlayer = ({ allUrl, tracks }: { allUrl; tracks: Track[] }) => {
   const [currentTrackIndex, setCurrentTrackIndex] = React.useState<number>(0);
   const [isPlaying, setIsPlaying] = React.useState<boolean>(true);
   const [progress, setProgress] = React.useState<number>(0);
@@ -19,11 +19,11 @@ const AudioPlayer = ({ url, tracks }: { url: string; tracks: Track[] }) => {
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   React.useEffect(() => {//上下一首
-    const index = tracks.findIndex((track) => track.url === url);
+    const index = tracks.findIndex((track) => track.url === allUrl);
     if (index !== -1) {
       setCurrentTrackIndex(index);
     }
-  }, [url, tracks]);
+  }, [allUrl, tracks]);
   const nextTrack = () => setCurrentTrackIndex((prevIndex) => (prevIndex + 1) % tracks.length);
   const previousTrack = () => setCurrentTrackIndex((prevIndex) => prevIndex === 0 ? tracks.length - 1 : prevIndex - 1);
 

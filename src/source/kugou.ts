@@ -14,6 +14,7 @@ interface SongInfo {
     trans_param: {
         union_cover: string;
     }
+    duration: number;
 };
 
 export default class kugou_source {
@@ -28,7 +29,7 @@ export default class kugou_source {
             }
 
             var data = await response.json();
-            this.getalbum(data,);
+            this.getalbum(data);
         } catch (error) {
             this.list.push('NetworkError');
             this.list.push({ ErrorCode: `${response.status}` });
@@ -78,10 +79,9 @@ export default class kugou_source {
         const cacheFilePath = JSON.parse(localStorage.getItem("NM_SETTING_CUSTOM")).storage.cachePath + '\\Cache\\MHYNotRelease_Cache\\MHYNotRelease.json';
         if (await betterncm.fs.exists(cacheFilePath)) {
             const file = JSON.parse(await betterncm.fs.readFileText(cacheFilePath));
-            
+
             if (file.length == data.length) {
                 const allEqual = data.every((item, index) => item.albumid == file[index]?.album_id);
-                console.log(allEqual);
                 if (allEqual) {
                     this.list = [...file];
                     return;
@@ -89,7 +89,7 @@ export default class kugou_source {
             }
         }
 
-        let album2list = { album2list: [] }
+        let album2list = []
         for (let i = 0; i < data.length; i++) {
             try {
                 let page = 1;
@@ -118,23 +118,23 @@ export default class kugou_source {
 
                 try {
                     for (let l = 0; l < allSongs.length; l++) {
-                        if (!album2list.album2list[i]) {
-                            album2list.album2list[i] = { song: [] };
+                        if (!album2list[i]) {
+                            album2list[i] = { song: [] };
                         }
-                        if (!album2list.album2list[i].song[l]) {
-                            album2list.album2list[i].song[l] = { info: {} };
+                        if (!album2list[i].song[l]) {
+                            album2list[i].song[l] = { info: {} };
                         }
 
-                        album2list.album2list[i].song[l].info.originhash = allSongs[l].origin_hash;
-                        album2list.album2list[i].song[l].info.hash = allSongs[l].hash;
-                        album2list.album2list[i].song[l].info.sqhash = allSongs[l].sqhash;
-                        album2list.album2list[i].song[l].info.hqhash = allSongs[l]["320hash"];
-                        album2list.album2list[i].song[l].info.audio_id = `${allSongs[l].audio_id}`;
-                        album2list.album2list[i].song[l].info.album_id = allSongs[l].album_id;
-                        album2list.album2list[i].song[l].info.cover = allSongs[l].trans_param.union_cover;
-                        album2list.album2list[i].song[l].info.name = allSongs[l].filename;
-                        album2list.album2list[i].song[l].info.publish_time = data[i].publish_time;
-                        album2list.album2list[i].song[l].info.albumname = data[i].albumname;
+                        album2list[i].song[l].info.hash = allSongs[l].hash;
+                        album2list[i].song[l].info.sqhash = allSongs[l].sqhash;
+                        album2list[i].song[l].info.hqhash = allSongs[l]["320hash"];
+                        album2list[i].song[l].info.audio_id = `${allSongs[l].audio_id}`;
+                        album2list[i].song[l].info.album_id = allSongs[l].album_id;
+                        album2list[i].song[l].info.cover = allSongs[l].trans_param.union_cover;
+                        album2list[i].song[l].info.name = allSongs[l].filename;
+                        album2list[i].song[l].info.publish_time = data[i].publish_time;
+                        album2list[i].song[l].info.albumname = data[i].albumname;
+                        album2list[i].song[l].info.timeLength = allSongs[l].duration;
                     }
                 } catch (error) {
                     this.list.push('JSONFormatError');
@@ -154,48 +154,31 @@ export default class kugou_source {
     }
 
     private getsongurl(data) {//url
-        let albumsong = { albumlist: [] }
+        let albumsong = []
 
         try {
-            for (let i = 0; i < data.album2list.length; i++) {
-                for (let l = 0; l < data.album2list[i].song.length; l++) {
-                    if (!albumsong.albumlist[i]) {
-                        albumsong.albumlist[i] = { song: [] };
+            for (let i = 0; i < data.length; i++) {
+                for (let l = 0; l < data[i].song.length; l++) {
+                    if (!albumsong[i]) {
+                        albumsong[i] = { song: [] };
                     }
-                    if (!albumsong.albumlist[i].song[l]) {
-                        albumsong.albumlist[i].song[l] = { url: {} };
+                    if (!albumsong[i].song[l]) {
+                        albumsong[i].song[l] = { url: {}, hash: {} };
                     }
-                    albumsong.albumlist[i].song[l].publish_time = data.album2list[i].song[l].info.publish_time
-                    albumsong.albumlist[i].song[l].name = data.album2list[i].song[l].info.name
-                    albumsong.albumlist[i].song[l].albumname = data.album2list[i].song[l].info.albumname
-                    albumsong.albumlist[i].song[l].cover = data.album2list[i].song[l].info.cover
-                    albumsong.albumlist[i].song[l].audio_id = data.album2list[i].song[l].info.audio_id
-                    albumsong.albumlist[i].song[l].album_id = data.album2list[i].song[l].info.album_id
-                    albumsong.albumlist[i].song[l].originhash = data.album2list[i].song[l].info.originhash
-                    albumsong.albumlist[i].song[l].url.origin = 'http://trackercdn.kugou.com/i/v2/?' +
-                        'key=' +
-                        CryptoJS.MD5(data.album2list[i].song[l].info.hash + 'kgcloudv2').toString(CryptoJS.enc.Hex) +
-                        '&hash=' +
-                        data.album2list[i].song[l].info.hash +
-                        '&' +
-                        'appid=1005&pid=2&cmd=25&behavior=play&album_id=' +
-                        data.album2list[i].song[l].info.album_id
-                    albumsong.albumlist[i].song[l].url.sq = 'http://trackercdn.kugou.com/i/v2/?' +
-                        'key=' +
-                        CryptoJS.MD5(data.album2list[i].song[l].info.sqhash + 'kgcloudv2').toString(CryptoJS.enc.Hex) +
-                        '&hash=' +
-                        data.album2list[i].song[l].info.sqhash +
-                        '&' +
-                        'appid=1005&pid=2&cmd=25&behavior=play&album_id=' +
-                        data.album2list[i].song[l].info.album_id
-                    albumsong.albumlist[i].song[l].url.hq = 'http://trackercdn.kugou.com/i/v2/?' +
-                        'key=' +
-                        CryptoJS.MD5(data.album2list[i].song[l].info.hqhash + 'kgcloudv2').toString(CryptoJS.enc.Hex) +
-                        '&hash=' +
-                        data.album2list[i].song[l].info.hqhash +
-                        '&' +
-                        'appid=1005&pid=2&cmd=25&behavior=play&album_id=' +
-                        data.album2list[i].song[l].info.album_id
+
+                    albumsong[i].song[l].publish_time = data[i].song[l].info.publish_time;
+                    albumsong[i].song[l].name = data[i].song[l].info.name;
+                    albumsong[i].song[l].albumname = data[i].song[l].info.albumname;
+                    albumsong[i].song[l].cover = data[i].song[l].info.cover;
+                    albumsong[i].song[l].audio_id = data[i].song[l].info.audio_id;
+                    albumsong[i].song[l].album_id = data[i].song[l].info.album_id;
+                    albumsong[i].song[l].url.origin = `http://trackercdn.kugou.com/i/v2/?key=${CryptoJS.MD5(data[i].song[l].info.hash + 'kgcloudv2').toString(CryptoJS.enc.Hex)}&hash=${data[i].song[l].info.hash}&appid=1005&pid=2&cmd=25&behavior=play&album_id=${data[i].song[l].info.album_id}`;
+                    albumsong[i].song[l].url.sq = `http://trackercdn.kugou.com/i/v2/?key=${CryptoJS.MD5(data[i].song[l].info.sqhash + 'kgcloudv2').toString(CryptoJS.enc.Hex)}&hash=${data[i].song[l].info.sqhash}&appid=1005&pid=2&cmd=25&behavior=play&album_id=${data[i].song[l].info.album_id}`;
+                    albumsong[i].song[l].url.hq = `http://trackercdn.kugou.com/i/v2/?key=${CryptoJS.MD5(data[i].song[l].info.hqhash + 'kgcloudv2').toString(CryptoJS.enc.Hex)}&hash=${data[i].song[l].info.hqhash}&appid=1005&pid=2&cmd=25&behavior=play&album_id=${data[i].song[l].info.album_id}`;
+                    albumsong[i].song[l].hash.hash = data[i].song[l].info.hash;
+                    albumsong[i].song[l].hash.hqhash = data[i].song[l].info.hqhash;
+                    albumsong[i].song[l].hash.sqhash = data[i].song[l].info.hqhash;
+                    albumsong[i].song[l].timeLength = data[i].song[l].info.timeLength;
                 }
             }
         } catch (error) {
@@ -204,100 +187,28 @@ export default class kugou_source {
             console.error('MHYNotRelease,获取歌曲URL错误, Error:与预期json文件结构不一致');
             return
         }
-        this.choose_qu(albumsong)
-    }
-
-    private choose_qu(data) {//音质选择
-        let quality
-        if (localStorage.getItem('MHYNotRelease-playermode') == 'native') {
-            switch (JSON.parse(localStorage.getItem('MHYNotRelease-quantity'))) {//原生播放
-                case 128:
-                    quality = 'origin'
-                    break
-                case 320:
-                    quality = 'hq'
-                    break
-                case 999:
-                    quality = 'hq'
-                    break
-                case 1999:
-                    quality = 'hq'
-                    break
-            }
-        } else {
-            switch (JSON.parse(localStorage.getItem('MHYNotRelease-quantity'))) {//插件内置播放器
-                case 128:
-                    quality = 'origin'
-                    break
-                case 320:
-                    quality = 'hq'
-                    break
-                case 999:
-                    quality = 'sq'
-                    break
-                case 1999:
-                    quality = 'sq'
-                    break
-            }
-        }
-
-        for (let i = 0; i < data.albumlist.length; i++) {
-            for (let l = 0; l < data.albumlist[i].song.length; l++) {
-                switch (quality) {
-                    case "origin":
-                        data.albumlist[i].song[l].url = data.albumlist[i].song[l].url.origin;
-                        break;
-                    case "hq":
-                        data.albumlist[i].song[l].url = data.albumlist[i].song[l].url.hq;
-                        break;
-                    case "sq":
-                        data.albumlist[i].song[l].url = data.albumlist[i].song[l].url.sq;
-                        break;
-                    default:
-                        data.albumlist[i].song[l].url = data.albumlist[i].song[l].url.origin;
-
-                        this.list.push('JSONformatError');
-                        console.error("MHYNotRelease: 音质选择错误");
-                }
-            }
-        }
-        this.list2json(data)
+        this.list2json(albumsong)
     }
 
     private async list2json(data) {
         const albumMap = {};
 
-        for (let i = 0; i < data.albumlist.length; i++) {
-            for (let l = 0; l < data.albumlist[i].song.length; l++) {
-                const parts = data.albumlist[i].song[l].name.split(' - ');
-
-                try {
-                    var response = await fetch(data.albumlist[i].song[l].url);
-                    var data_get = await response.json();
-                    if (!response.ok) {
-                        throw new Error('网络错误! status:' + `${response.status}`);
-                    }
-                } catch (error) {
-                    this.list.push('NetworkError');
-                    this.list.push({ context: `提取歌曲失败, ${error}` });
-                    this.list.push({ ErrorCode: `${response.status}` });
-                    console.error('MHYNotRelease,提取歌曲失败,', error);
-                    return;
-                }
+        for (let i = 0; i < data.length; i++) {
+            for (let l = 0; l < data[i].song.length; l++) {
+                const parts = data[i].song[l].name.split(' - ');
 
                 try {
                     var song = {
-                        originhash: data.albumlist[i].song[l].originhash,
-                        extName: data_get.extName,
-                        url: data.albumlist[i].song[l].url,
-                        time: data_get.timeLength,
-                        albumname: data.albumlist[i].song[l].albumname,
+                        hash: data[i].song[l].hash.hash,
+                        url: data[i].song[l].url,
+                        time: data[i].song[l].timeLength,
+                        albumname: data[i].song[l].albumname,
                         name: parts[1],
                         author: parts[0],
-                        cover: ("orpheus://cache/?" + data.albumlist[i].song[l].cover).replace("{size}", '240'),
-                        publish_time: data.albumlist[i].song[l].publish_time,
-                        album_id: data.albumlist[i].song[l].album_id,
-                        audio_id: data.albumlist[i].song[l].audio_id
+                        cover: ("orpheus://cache/?" + data[i].song[l].cover).replace("{size}", '240'),
+                        publish_time: data[i].song[l].publish_time,
+                        album_id: data[i].song[l].album_id,
+                        audio_id: data[i].song[l].audio_id
                     };
                 } catch (error) {
                     this.list.push('JSONFormatError');
@@ -325,10 +236,8 @@ export default class kugou_source {
                 singername: albumInfo?.singername,
                 coverurl: albumInfo?.coverurl,
                 publish_time: albumInfo?.publish_time,
-                publish_time_real: albumInfo?.publish_time_real
             });
         }
-
 
         this.list.shift();
         this.list.reverse();
@@ -341,7 +250,26 @@ export default class kugou_source {
     }
 }
 
-export async function getUrl(url: string) {
+export async function getUrl(allUrl = {} as { origin: string, hq: string, sq: string }) {
+    let url = '';
+    switch (localStorage.getItem('MHYNotRelease-quantity')) {
+        case "128":
+            url = allUrl.origin;
+            break;
+        case "320":
+            url = allUrl.hq;
+            break;
+        case "999":
+            url = allUrl.sq;
+            if (JSON.parse(localStorage.getItem('MHYNotRelease-playermode')) !== 'plugin') url = allUrl.hq;
+            break;
+        case "1999":
+            url = allUrl.sq;
+            if (JSON.parse(localStorage.getItem('MHYNotRelease-playermode')) !== 'plugin') url = allUrl.hq;
+            break;
+        default:
+            url = allUrl.origin;
+    }
     try {
         var response = await fetch(url);
         var json = await response.json();
