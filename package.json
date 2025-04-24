@@ -4,7 +4,7 @@
   "description": "让网易云也能首发米哈游音乐",
   "main": "index.js",
   "repository": "https://github.com/etherfun/MHYNotRelease",
-  "author": "etherfun <what-funny-fun@outlook.com>",
+  "author": "etherfun <124044584+etherfun@users.noreply.github.com>",
   "license": "GPL-3.0",
   "private": true,
   "dependencies": {
